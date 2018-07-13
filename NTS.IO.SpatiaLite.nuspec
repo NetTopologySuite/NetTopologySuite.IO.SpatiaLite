@@ -25,7 +25,7 @@
 	</metadata>
 	<files>
 		<file src="NetTopologySuite.Common.props" target="src" />
-		<file src="NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite\**" exclude="NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite\obj\**" target="src\NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite" />
+		<file src="NetTopologySuite.IO.SpatiaLite\**" exclude="NetTopologySuite.IO.SpatiaLite\obj\**" target="src\NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite" />
 
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.deps.json" target="lib" />
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.dll" target="lib" />
