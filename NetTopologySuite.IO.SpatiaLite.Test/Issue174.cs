@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace NetTopologySuite.IO.SpatialLite.Test
+namespace NetTopologySuite.IO.SpatiaLite.Test
 {
     class Issue174
     {

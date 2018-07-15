@@ -39,9 +39,9 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             //kvcc.Add("SpatiaLiteCompressed", "false");
         }
 
-        protected override void ReadAppConfigInternal(AppSettingsReader asr)
+        protected override void ReadAppConfigInternal(KeyValueConfigurationCollection kvcc)
         {
-            //this.Compressed = (bool)asr.GetValue("SpatiaLiteCompressed", typeof(bool));
+            //this.Compressed = bool.Parse(kvcc["SpatiaLiteCompressed"].Value);
         }
 
         protected override void CreateTestStore()

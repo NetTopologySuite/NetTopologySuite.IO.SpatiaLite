@@ -5,15 +5,18 @@ VisualStudioVersion = 15.0.27004.2009
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B0923F22-AF00-46DA-B5CE-73F4D398DE37}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		NTS.IO.SpatiaLite.nuspec = NTS.IO.SpatiaLite.nuspec
+		LICENSE.md = LICENSE.md
+		NetTopologySuite.Common.props = NetTopologySuite.Common.props
+		NetTopologySuite.IO.SpatiaLite.nuspec = NetTopologySuite.IO.SpatiaLite.nuspec
 		README.md = README.md
 		SharedAssemblyVersion.cs = SharedAssemblyVersion.cs
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite", "NetTopologySuite.IO.SpatiaLite\NetTopologySuite.IO.SpatiaLite.csproj", "{7B1D5E9B-C287-4984-BDF4-3A0944BF85E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatialLite.Test", "NetTopologySuite.IO.SpatialLite.Test\NetTopologySuite.IO.SpatialLite.Test.csproj", "{0347C9B8-684D-4792-B609-4A999AFC4273}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite.Test", "NetTopologySuite.IO.SpatiaLite.Test\NetTopologySuite.IO.SpatiaLite.Test.csproj", "{0347C9B8-684D-4792-B609-4A999AFC4273}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

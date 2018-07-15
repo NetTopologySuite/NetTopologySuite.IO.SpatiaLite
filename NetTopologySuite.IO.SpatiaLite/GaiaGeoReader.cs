@@ -24,6 +24,9 @@ using GeoAPI.IO;
 
 namespace NetTopologySuite.IO
 {
+    /// <summary>
+    /// Class to read SpatiaLite geometries from an array of bytes
+    /// </summary>
     public class GaiaGeoReader : IBinaryGeometryReader
     {
         private IGeometryFactory _factory;
@@ -31,15 +34,25 @@ namespace NetTopologySuite.IO
         private readonly ICoordinateSequenceFactory _coordinateSequenceFactory;
         private Ordinates _handleOrdinates;
 
+        /// <summary>
+        /// Creates an instance of this class using the default <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// </summary>
         public GaiaGeoReader()
             : this(GeometryServiceProvider.Instance.DefaultCoordinateSequenceFactory, GeometryServiceProvider.Instance.DefaultPrecisionModel)
         { }
 
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// </summary>
         public GaiaGeoReader(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel)
             : this(coordinateSequenceFactory, precisionModel, Ordinates.XYZM)
         {
         }
 
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// Additionally the ordinate values that are to be handled can be set.
+        /// </summary>
         public GaiaGeoReader(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel, Ordinates handleOrdinates)
         {
             _coordinateSequenceFactory = coordinateSequenceFactory;
@@ -47,6 +60,7 @@ namespace NetTopologySuite.IO
             _handleOrdinates = handleOrdinates;
         }
 
+        /// <inheritdoc cref="IGeometryReader{TSource}.Read(TSource)"/>>
         public IGeometry Read(byte[] blob)
         {
             if (blob.Length < 45)
@@ -134,6 +148,7 @@ namespace NetTopologySuite.IO
             return geom;
         }
 
+        /// <inheritdoc cref="IGeometryReader{TSource}.Read(Stream)"/>>
         public IGeometry Read(Stream stream)
         {
             var buffer = new byte[stream.Length];
@@ -141,9 +156,7 @@ namespace NetTopologySuite.IO
             return Read(buffer);
         }
 
-        /// <summary>
-        /// Gets or sets whether invalid linear rings should be fixed
-        /// </summary>
+        /// <inheritdoc cref="IGeometryReader{TSource}.RepairRings" />
         public bool RepairRings { get; set; }
 
         private static ReadCoordinatesFunction SetReadCoordinatesFunction(GaiaImport gaiaImport, GaiaGeoGeometry type)
@@ -260,7 +273,7 @@ namespace NetTopologySuite.IO
                     /*coords[i].M =*/
                     getDouble(blob, ref offset);
             }
-            return factory.CreateMultiPoint(coords);
+            return factory.CreateMultiPointFromCoords(coords);
         }
 
         private delegate ILineString CreateLineStringFunction(ICoordinateSequence coordinates);
@@ -565,13 +578,16 @@ namespace NetTopologySuite.IO
             return ret;
         }
 
+        /// <inheritdoc cref="IGeometryIOSettings.HandleSRID"/>>
         public bool HandleSRID { get; set; }
 
+        /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>>
         public Ordinates AllowedOrdinates
         {
             get { return Ordinates.XYZM; }
         }
 
+        /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>>
         public Ordinates HandleOrdinates
         {
             get { return _handleOrdinates; }

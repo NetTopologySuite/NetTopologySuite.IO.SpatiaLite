@@ -6,8 +6,8 @@
 		<title>NTS - Topology Suite - IO Library for SpatiaLite</title>
 		<authors>NetTopologySuite - Team</authors>
 		<owners>NetTopologySuite - Team</owners>
-		<licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
-		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite</projectUrl>
+		<licenseUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite/LICENSE.md</licenseUrl>
+		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>
       This package contains the SpatiaLite IO library.
@@ -20,12 +20,12 @@
 			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
-			<dependency id="NetTopologySuite" version="$version$" />
+			<dependency id="GeoAPI" version="$geoapiversion$" />
 		</dependencies>
 	</metadata>
 	<files>
 		<file src="NetTopologySuite.Common.props" target="src" />
-		<file src="NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite\**" exclude="NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite\obj\**" target="src\NetTopologySuite.IO\NetTopologySuite.IO.SpatiaLite" />
+		<file src="NetTopologySuite.IO.SpatiaLite\**" exclude="NetTopologySuite.IO.SpatiaLite\obj\**" target="src\NetTopologySuite.IO.SpatiaLite" />
 
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.deps.json" target="lib" />
 		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.dll" target="lib" />

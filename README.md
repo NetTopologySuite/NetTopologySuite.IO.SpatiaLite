@@ -1,2 +1,2 @@
-# SpatialLite
-SpatialLite IO module for NTS. 
+# SpatiaLite
+SpatiaLite IO module for NTS. 

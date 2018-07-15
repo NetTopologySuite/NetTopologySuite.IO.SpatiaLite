@@ -16,23 +16,27 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using GeoAPI.Geometries;
 using GeoAPI.IO;
 
 namespace NetTopologySuite.IO
 {
+    /// <summary>
+    /// Creates a 
+    /// </summary>
     public class GaiaGeoWriter : IBinaryGeometryWriter
     {
         private Ordinates _handleOrdinates;
 
+        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry, Stream)"/>>
         public void Write(IGeometry geometry, Stream stream)
         {
             var g = Write(geometry);
             stream.Write(g, 0, g.Length);
         }
 
+        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry)"/>>
         public byte[] Write(IGeometry geom)
         {
             //if (geom.IsEmpty)
@@ -64,7 +68,6 @@ namespace NetTopologySuite.IO
                     }
 
                     bw.Write((byte)GaiaGeoBlobMark.GAIA_MARK_MBR);
-                    Debug.Assert(ms.Position == 39);
 
                     //Write geometry
                     WriteGeometry(geom, gaiaExport, bw);
@@ -108,33 +111,33 @@ namespace NetTopologySuite.IO
             int coordinateFlagNotValidForCompression = coordinateFlag > 1000000
                                                            ? coordinateFlag - 1000000
                                                            : coordinateFlag;
-            switch (geom.GeometryType.ToUpper())
+            switch (geom.OgcGeometryType)
             {
-                case "POINT":
+                case OgcGeometryType.Point:
                     gaiaExport.WriteInt32(bw, (int)(GaiaGeoGeometry.GAIA_POINT) | coordinateFlagNotValidForCompression);
                     WritePoint((IPoint)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "LINESTRING":
+                case OgcGeometryType.LineString:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_LINESTRING | coordinateFlag);
                     WriteLineString((ILineString)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "POLYGON":
+                case OgcGeometryType.Polygon:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_POLYGON | coordinateFlag);
                     WritePolygon((IPolygon)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "MULTIPOINT":
+                case OgcGeometryType.MultiPoint:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOINT | coordinateFlagNotValidForCompression);
                     WriteMultiPoint((IMultiPoint)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "MULTILINESTRING":
+                case OgcGeometryType.MultiLineString:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTILINESTRING | coordinateFlag);
                     WriteMultiLineString((IMultiLineString)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "MULTIPOLYGON":
+                case OgcGeometryType.MultiPolygon:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOLYGON | coordinateFlag);
                     WriteMultiPolygon((IMultiPolygon)geom, writeCoordinates, gaiaExport, bw);
                     break;
-                case "GEOMETRYCOLLECTION":
+                case OgcGeometryType.GeometryCollection:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_GEOMETRYCOLLECTION | coordinateFlagNotValidForCompression);
                     WriteGeometryCollection((IGeometryCollection)geom, gaiaExport, bw);
                     break;
@@ -390,6 +393,7 @@ namespace NetTopologySuite.IO
             wd(bw, cprev.X, cprev.Y, cprev.Z, mprev);
         }
 
+        /// <inheritdoc cref="IGeometryIOSettings.HandleSRID"/>
         public bool HandleSRID
         {
             get { return true; }
@@ -400,11 +404,13 @@ namespace NetTopologySuite.IO
             }
         }
 
+        /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>
         public Ordinates AllowedOrdinates
         {
             get { return Ordinates.XYZM; }
         }
 
+        /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>
         public Ordinates HandleOrdinates
         {
             get { return _handleOrdinates; }
@@ -415,6 +421,7 @@ namespace NetTopologySuite.IO
             }
         }
 
+        /// <inheritdoc cref="IBinaryGeometryWriter.ByteOrder"/>
         public ByteOrder ByteOrder
         {
             get { return ByteOrder.LittleEndian; }

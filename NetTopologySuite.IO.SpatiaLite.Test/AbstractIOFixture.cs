@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
@@ -21,6 +22,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         protected AbstractIOFixture(IGeometryFactory factory)
         {
+            GeoAPI.GeometryServiceProvider.Instance = NtsGeometryServices.Instance;
             RandomGeometryHelper = new RandomGeometryHelper(factory);
         }
 
@@ -47,29 +49,26 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         private void CheckAppConfigPresent()
         {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NetTopologySuite.IO.Tests.dll.config");
-            if (!File.Exists(path))
-                CreateAppConfig();
-            UpdateAppConfig();
-            ReadAppConfig();
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "NetTopologySuite.IO.SpatiaLite.Test.dll");
+            if (!File.Exists(path + ".config"))
+                CreateAppConfig(path);
+            UpdateAppConfig(path);
+            ReadAppConfig(path);
         }
 
-        private void UpdateAppConfig()
+        private void UpdateAppConfig(string path)
         {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var config = ConfigurationManager.OpenExeConfiguration(path);
+            var appSettings = config.AppSettings.Settings;
 
-            KeyValueConfigurationCollection appSettings = config.AppSettings.Settings;
             AddAppConfigSpecificItems(appSettings);
-            config.Save(ConfigurationSaveMode.Full);
-            ConfigurationManager.RefreshSection("appSettings");
-
+            config.Save(ConfigurationSaveMode.Modified);
         }
 
-        private void CreateAppConfig()
+        private void CreateAppConfig(string path)
         {
-            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-            KeyValueConfigurationCollection appSettings = config.AppSettings.Settings;
+            var config = ConfigurationManager.OpenExeConfiguration(path);
+            var appSettings = config.AppSettings.Settings;
 
             appSettings.Add("PrecisionModel", "Floating");
             appSettings.Add("Ordinates", "XY");
@@ -79,32 +78,32 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             appSettings.Add("MaxY", "90");
             appSettings.Add("Srid", "4326");
 
-            config.Save(ConfigurationSaveMode.Full);
-            ConfigurationManager.RefreshSection("appSettings");
+            config.Save(ConfigurationSaveMode.Modified);
         }
 
         protected abstract void AddAppConfigSpecificItems(KeyValueConfigurationCollection kvcc);
 
-        private void ReadAppConfig()
+        private void ReadAppConfig(string path)
         {
-            AppSettingsReader asr = new AppSettingsReader();
-            SRID = (int)asr.GetValue("Srid", typeof(int));
-            string pm = (string) asr.GetValue("PrecisionModel", typeof (string));
-            int scale;
-            PrecisionModel = int.TryParse(pm, out scale) 
-                ? new PrecisionModel(scale) 
+            var config = ConfigurationManager.OpenExeConfiguration(path);
+            var kvcc = config.AppSettings.Settings;
+            SRID = int.Parse(kvcc["Srid"].Value);
+            string pm = kvcc["PrecisionModel"].Value;
+            PrecisionModel = int.TryParse(pm, out int scale)
+                ? new PrecisionModel(scale)
                 : new PrecisionModel((PrecisionModels)Enum.Parse(typeof(PrecisionModels), pm));
-            MinX = (double)asr.GetValue("MinX", typeof(double));
-            MaxX = (double)asr.GetValue("MaxX", typeof(double));
-            MinY = (double)asr.GetValue("MinY", typeof(double));
-            MaxY = (double)asr.GetValue("MaxY", typeof(double));
-            string ordinatesString = (string)asr.GetValue("Ordinates", typeof(string));
-            Ordinates ordinates = (Ordinates)Enum.Parse(typeof(Ordinates), ordinatesString);
+            MinX = double.Parse(kvcc["MinX"].Value, NumberFormatInfo.InvariantInfo);
+            MaxX = double.Parse(kvcc["MaxX"].Value, NumberFormatInfo.InvariantInfo);
+            MinY = double.Parse(kvcc["MinY"].Value, NumberFormatInfo.InvariantInfo);
+            MaxY = double.Parse(kvcc["MaxY"].Value, NumberFormatInfo.InvariantInfo);
+            string ordinatesString = kvcc["Ordinates"].Value;
+            var ordinates = (Ordinates)Enum.Parse(typeof(Ordinates), ordinatesString);
             RandomGeometryHelper.Ordinates = ordinates;
-            ReadAppConfigInternal(asr);
+
+            ReadAppConfigInternal(kvcc);
         }
 
-        protected virtual void ReadAppConfigInternal(AppSettingsReader asr) { }
+        protected virtual void ReadAppConfigInternal(KeyValueConfigurationCollection kvcc) { }
 
         public string ConnectionString { get; protected set; }
 
@@ -116,14 +115,14 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             }
             protected set
             {
-                PrecisionModel oldPM = new PrecisionModel();
-                if (RandomGeometryHelper != null)
-                    oldPM = (PrecisionModel)RandomGeometryHelper.Factory.PrecisionModel;
-                Debug.Assert(RandomGeometryHelper != null, "RandomGeometryHelper != null");
-                if (RandomGeometryHelper.Factory is OgcCompliantGeometryFactory)
-                    RandomGeometryHelper.Factory = new OgcCompliantGeometryFactory(oldPM, value);
-                else
-                    RandomGeometryHelper.Factory = new GeometryFactory(oldPM, value);
+                var oldPM = new PrecisionModel();
+                if (RandomGeometryHelper == null || RandomGeometryHelper.Factory == null)
+                    throw new InvalidOperationException();
+
+                oldPM = (PrecisionModel)RandomGeometryHelper.Factory.PrecisionModel;
+                RandomGeometryHelper.Factory = RandomGeometryHelper.Factory is OgcCompliantGeometryFactory
+                    ? new OgcCompliantGeometryFactory(oldPM, value)
+                    : new GeometryFactory(oldPM, value);
             }
         }
 
@@ -141,12 +140,12 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
                 if (value == PrecisionModel)
                     return;
 
-                IGeometryFactory factory = RandomGeometryHelper.Factory;
-                int oldSrid = factory != null ? factory.SRID : 0;
-                ICoordinateSequenceFactory oldFactory = factory != null
+                var factory = RandomGeometryHelper.Factory;
+                int oldSrid = factory?.SRID ?? 0;
+                var oldFactory = factory != null
                                      ? factory.CoordinateSequenceFactory
                                      : CoordinateArraySequenceFactory.Instance;
-                
+
                 if (RandomGeometryHelper.Factory is OgcCompliantGeometryFactory)
                     RandomGeometryHelper.Factory = new OgcCompliantGeometryFactory(value, oldSrid, oldFactory);
                 else
@@ -195,7 +194,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         public void PerformTest(IGeometry gIn)
         {
-            WKTWriter writer = new WKTWriter(2) {EmitSRID = true, MaxCoordinatesPerLine = 3,};
+            WKTWriter writer = new WKTWriter(2) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
             byte[] b = null;
             Assert.DoesNotThrow(() => b = Write(gIn), "Threw exception during write:\n{0}", writer.WriteFormatted(gIn));
 
@@ -259,6 +258,6 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         {
             for (int i = 0; i < 5; i++)
                 PerformTest(RandomGeometryHelper.GeometryCollection);
-        }        
+        }
     }
 }
