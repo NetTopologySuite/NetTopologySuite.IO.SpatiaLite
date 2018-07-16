@@ -8,6 +8,7 @@
 		<owners>NetTopologySuite - Team</owners>
 		<licenseUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite/LICENSE.md</licenseUrl>
 		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>
       This package contains the SpatiaLite IO library.
