@@ -1,7 +1,6 @@
-using System;
-
 namespace NetTopologySuite.IO.SpatiaLite.Test
 {
+    using System;
     using System.Configuration;
     using System.Data;
     using System.Data.SQLite;
