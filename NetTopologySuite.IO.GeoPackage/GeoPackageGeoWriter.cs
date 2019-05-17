@@ -1,4 +1,4 @@
-// Copyright 2011 - Felix Obermaier (ivv-aachen.de)
+// Copyright 2019 - NetTopologySuite
 //
 // This file is part of NetTopologySuite.IO.SpatiaLite
 // NetTopologySuite.IO.SpatiaLite is free software; you can redistribute it and/or modify
@@ -19,7 +19,6 @@ using System;
 using System.IO;
 using GeoAPI.Geometries;
 using GeoAPI.IO;
-using SharpMap.Data.Providers.Geometry;
 
 namespace NetTopologySuite.IO
 {
@@ -68,12 +67,12 @@ namespace NetTopologySuite.IO
                 }
                 int isEmpty = geom.IsEmpty ? 1 : 0;
                 byte flags = (byte)(byteOrder + (ordinates << 1) + (isEmpty << 4));
-                var header = new GpkgBinaryHeader
+                var header = new GeoPackageBinaryHeader
                 {
                     Extent = geom.EnvelopeInternal,
                     Flags = flags
                 };
-                GpkgBinaryHeader.Write(writer, header);
+                GeoPackageBinaryHeader.Write(writer, header);
 
                 var wkbWriter = new WKBWriter(ByteOrder);
                 wkbWriter.Write(geom, stream);

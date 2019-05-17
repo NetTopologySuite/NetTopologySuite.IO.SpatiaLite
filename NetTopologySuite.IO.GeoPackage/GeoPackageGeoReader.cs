@@ -1,4 +1,4 @@
-﻿// Copyright 2011 - Felix Obermaier (ivv-aachen.de)
+﻿// Copyright 2019 - NetTopologySuite
 //
 // This file is part of NetTopologySuite.IO.SpatiaLite
 // NetTopologySuite.IO.SpatiaLite is free software; you can redistribute it and/or modify
@@ -16,13 +16,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using GeoAPI;
-using GeoAPI.DataStructures;
 using GeoAPI.Geometries;
 using GeoAPI.IO;
-using SharpMap.Data.Providers.Geometry;
 
 namespace NetTopologySuite.IO
 {
@@ -75,8 +72,6 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static readonly Interval _full = Interval.Create(double.MinValue, double.MaxValue);
-
         /// <inheritdoc cref="IGeometryReader{TSource}.Read(Stream)"/>>
         public IGeometry Read(Stream stream)
         {
@@ -87,7 +82,7 @@ namespace NetTopologySuite.IO
 
             using (var reader = new BinaryReader(stream))
             {
-                var header = GpkgBinaryHeader.Read(reader);
+                var header = GeoPackageBinaryHeader.Read(reader);
                 int count = (int)(reader.BaseStream.Length - reader.BaseStream.Position);
                 byte[] bytes = reader.ReadBytes(count);
 

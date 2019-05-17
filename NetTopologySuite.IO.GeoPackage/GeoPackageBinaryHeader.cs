@@ -1,13 +1,36 @@
+// Copyright 2019 - NetTopologySuite
+//
+// This file is part of NetTopologySuite.IO.SpatiaLite
+// NetTopologySuite.IO.SpatiaLite is free software; you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// NetTopologySuite.IO.SpatiaLite is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+
+// You should have received a copy of the GNU Lesser General Public License
+// along with NetTopologySuite.IO.SpatiaLite if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
 using System;
 using System.IO;
-using System.Text;
 using GeoAPI.DataStructures;
 using GeoAPI.Geometries;
 
-// see: https://github.com/SharpMap/SharpMap/blob/Branches/1.0/SharpMap.Data.Providers.GeoPackage/Geometry/GpkgBinaryHeader.cs
-namespace SharpMap.Data.Providers.Geometry
+namespace NetTopologySuite.IO
 {
-    internal class GpkgBinaryHeader
+    /// <summary>
+    /// Represents GeoPackage binary header.
+    /// </summary>
+    /// <remarks>
+    /// Code adapted from: https://github.com/SharpMap/SharpMap/blob/Branches/1.0/SharpMap.Data.Providers.GeoPackage/Geometry/GpkgBinaryHeader.cs
+    /// Thanks to Felix Obermaier and SharpMap team!
+    /// </remarks>
+    /// <seealso href="http://www.geopackage.org/spec/#gpb_format"/>
+    internal class GeoPackageBinaryHeader
     {
         private const byte IsEmptyFlag = 0x01 << 4;
         private const byte EndianessFlag = 0x01;
@@ -26,14 +49,14 @@ namespace SharpMap.Data.Providers.Geometry
         private Interval _zrange;
         private Interval _mrange;
 
-        public static GpkgBinaryHeader Read(BinaryReader reader)
+        public static GeoPackageBinaryHeader Read(BinaryReader reader)
         {
             if (reader == null)
             {
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            var header = new GpkgBinaryHeader
+            var header = new GeoPackageBinaryHeader
             {
                 _magic = reader.ReadBytes(2),
                 _version = reader.ReadByte(),
@@ -51,10 +74,10 @@ namespace SharpMap.Data.Providers.Geometry
             if (ordinates == Ordinates.None)
             {
                 header._extent = new Envelope(
-                    Double.MinValue, Double.MaxValue,
-                    Double.MinValue, Double.MaxValue);
-                header._zrange = Interval.Create(Double.MinValue, Double.MaxValue);
-                header._mrange = Interval.Create(Double.MinValue, Double.MaxValue);
+                    double.MinValue, double.MaxValue,
+                    double.MinValue, double.MaxValue);
+                header._zrange = Interval.Create(double.MinValue, double.MaxValue);
+                header._mrange = Interval.Create(double.MinValue, double.MaxValue);
                 return header;
             }
 
@@ -99,7 +122,7 @@ namespace SharpMap.Data.Providers.Geometry
             return header;
         }
 
-        public static void Write(BinaryWriter writer, GpkgBinaryHeader header)
+        public static void Write(BinaryWriter writer, GeoPackageBinaryHeader header)
         {
             if (writer == null)
             {
@@ -174,7 +197,7 @@ namespace SharpMap.Data.Providers.Geometry
 
         private static int SwapByteOrder(int val)
         {
-            var bytes = BitConverter.GetBytes(val);
+            byte[] bytes = BitConverter.GetBytes(val);
             Array.Reverse(bytes);
             return BitConverter.ToInt32(bytes, 0);
         }
@@ -186,7 +209,7 @@ namespace SharpMap.Data.Providers.Geometry
         /// <returns></returns>
         private static double SwapByteOrder(double val)
         {
-            var bytes = BitConverter.GetBytes(val);
+            byte[] bytes = BitConverter.GetBytes(val);
             Array.Reverse(bytes);
             return BitConverter.ToDouble(bytes, 0);
         }

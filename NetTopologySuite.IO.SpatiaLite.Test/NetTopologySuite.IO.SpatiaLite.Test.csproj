@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NetTopologySuite.IO.GeoPackage\NetTopologySuite.IO.GeoPackage.csproj" />
     <ProjectReference Include="..\NetTopologySuite.IO.SpatiaLite\NetTopologySuite.IO.SpatiaLite.csproj" />
   </ItemGroup>
 
