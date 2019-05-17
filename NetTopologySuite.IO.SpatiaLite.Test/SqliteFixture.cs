@@ -103,8 +103,10 @@ WHERE [id] = 1;";
                         Assert.IsNotNull(geom);
                         Assert.IsInstanceOf<IPoint>(geom);
                         Assert.AreEqual(point, geom);
+                        Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(coord, geom.Coordinate);
-                        Assert.IsTrue(Double.IsNaN(geom.Coordinate.Z));
+                        Assert.IsTrue(coord.Equals(geom.Coordinate));
+                        Assert.IsNaN(geom.Coordinate.Z);
                     }
                 }
             });
@@ -153,8 +155,134 @@ WHERE [id] = 1;";
                         Assert.IsNotNull(geom);
                         Assert.IsInstanceOf<IPoint>(geom);
                         Assert.AreEqual(point, geom);
+                        Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(coord, geom.Coordinate);
+                        Assert.IsTrue(coord.Equals(geom.Coordinate));
                         Assert.IsTrue(coord.Equals3D(geom.Coordinate));
+                        Assert.AreEqual(coord.Z, geom.Coordinate.Z);
+                    }
+                }
+            });
+        }
+
+        [Test]
+        public virtual void Existing_pointM_should_be_read()
+        {
+            var sequenceFactory = new DotSpatialAffineCoordinateSequenceFactory(Ordinates.XYM);
+            var coordinateSequence = sequenceFactory.Create(
+                new[] { 11.11, 22.22 },
+                new[] { 0.0 },
+                new[] { 44.44 });
+            var factory = new GeometryFactory(sequenceFactory);
+            var point = factory.CreatePoint(coordinateSequence);
+            Assert.AreEqual(0.0, point.Z);
+            Assert.AreEqual(44.44, point.M);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table];
+INSERT INTO [sample_feature_table] ([id], [geometry])
+VALUES (1, gpkgMakePointM(@px, @py, @pm, 4326));";
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddWithValue("px", point.X);
+                    cmd.Parameters.AddWithValue("py", point.Y);
+                    cmd.Parameters.AddWithValue("pm", point.M);
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT geometry
+FROM [sample_feature_table]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+
+                        var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
+                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
+                        var geom = gpkgReader.Read(blob);
+                        Assert.IsNotNull(geom);
+                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.AreEqual(point, geom);
+                        Assert.IsTrue(point.EqualsExact(geom));
+                        Assert.AreEqual(point.Coordinate, geom.Coordinate);
+                        Assert.IsTrue(point.Coordinate.Equals(geom.Coordinate));
+                        Assert.AreEqual(point.M, ((Point)geom).M);
+                    }
+                }
+            });
+        }
+
+        [Test]
+        public virtual void Existing_pointZM_should_be_read()
+        {
+            var sequenceFactory = new DotSpatialAffineCoordinateSequenceFactory(Ordinates.XYZM);
+            var coordinateSequence = sequenceFactory.Create(
+                new[] { 11.11, 22.22 },
+                new[] { 33.33 },
+                new[] { 44.44 });
+            var factory = new GeometryFactory(sequenceFactory);
+            var point = factory.CreatePoint(coordinateSequence);
+            Assert.AreEqual(33.33, point.Z);
+            Assert.AreEqual(44.44, point.M);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table];
+INSERT INTO [sample_feature_table] ([id], [geometry])
+VALUES (1, gpkgMakePointZM(@px, @py, @pz, @pm, 4326));";
+                    cmd.CommandText = sql;
+                    cmd.Parameters.AddWithValue("px", point.X);
+                    cmd.Parameters.AddWithValue("py", point.Y);
+                    cmd.Parameters.AddWithValue("pz", point.Z);
+                    cmd.Parameters.AddWithValue("pm", point.M);
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT geometry
+FROM [sample_feature_table]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+
+                        var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
+                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
+                        var geom = gpkgReader.Read(blob);
+                        Assert.IsNotNull(geom);
+                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.AreEqual(point, geom);
+                        Assert.IsTrue(point.EqualsExact(geom));
+                        Assert.AreEqual(point.Coordinate, geom.Coordinate);
+                        Assert.IsTrue(point.Coordinate.Equals(geom.Coordinate));
+                        Assert.IsTrue(point.Coordinate.Equals3D(geom.Coordinate));
+                        Assert.AreEqual(point.Z, ((Point)geom).Z);
+                        Assert.AreEqual(point.M, ((Point)geom).M);
                     }
                 }
             });
