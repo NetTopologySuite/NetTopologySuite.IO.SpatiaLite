@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>NetTopologySuite.IO.GeoPackage</id>
+		<version>$version$</version>
+		<title>NTS - Topology Suite - IO Library for GeoPackage</title>
+		<authors>NetTopologySuite - Team</authors>
+		<owners>NetTopologySuite - Team</owners>
+		<licenseUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite/LICENSE.md</licenseUrl>
+		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</iconUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>
+      This package contains the GeoPackage IO library.
+    </description>
+		<summary>GeoPackage IO library for NetTopologySuite</summary>
+		<tags>NTS GeoPackage</tags>
+		<language>en-US</language>
+		<frameworkAssemblies>
+			<frameworkAssembly assemblyName="System" />
+			<frameworkAssembly assemblyName="System.Core" />
+		</frameworkAssemblies>
+		<dependencies>
+			<dependency id="GeoAPI" version="$geoapiversion$" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="NetTopologySuite.Common.props" target="src" />
+		<file src="NetTopologySuite.IO.GeoPackage\**" exclude="NetTopologySuite.IO.GeoPackage\obj\**" target="src\NetTopologySuite.IO.GeoPackage" />
+
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.deps.json" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.dll" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.pdb" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.xml" target="lib" />
+	</files>
+</package>
