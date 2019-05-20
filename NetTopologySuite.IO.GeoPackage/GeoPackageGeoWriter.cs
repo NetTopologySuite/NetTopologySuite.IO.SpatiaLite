@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using GeoAPI;
 using GeoAPI.Geometries;
 using GeoAPI.IO;
 
@@ -27,7 +28,34 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoPackageGeoWriter : IBinaryGeometryWriter
     {
+        private readonly IPrecisionModel _precisionModel;
+        private readonly ICoordinateSequenceFactory _coordinateSequenceFactory;
         private Ordinates _handleOrdinates;
+
+        /// <summary>
+        /// Creates an instance of this class using the default <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// </summary>
+        public GeoPackageGeoWriter()
+            : this(GeometryServiceProvider.Instance.DefaultCoordinateSequenceFactory, GeometryServiceProvider.Instance.DefaultPrecisionModel)
+        { }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// </summary>
+        public GeoPackageGeoWriter(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel)
+            : this(coordinateSequenceFactory, precisionModel, Ordinates.XYZM)
+        { }
+
+        /// <summary>
+        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
+        /// Additionally the ordinate values that are to be handled can be set.
+        /// </summary>
+        public GeoPackageGeoWriter(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel, Ordinates handleOrdinates)
+        {
+            _coordinateSequenceFactory = coordinateSequenceFactory;
+            _precisionModel = precisionModel;
+            _handleOrdinates = handleOrdinates;
+        }
 
         /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry, Stream)"/>>
         public void Write(IGeometry geom, Stream stream)
@@ -74,7 +102,12 @@ namespace NetTopologySuite.IO
                 };
                 GeoPackageBinaryHeader.Write(writer, header);
 
-                var wkbWriter = new WKBWriter(ByteOrder);
+                bool emitZ = (HandleOrdinates & Ordinates.Z) == Ordinates.Z;
+                bool emitM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
+                bool handleSRID = HandleSRID;
+                // NOTE: true breaks wkb geopackage writes! see test 'New_point_should_be_written'
+                handleSRID = false;
+                var wkbWriter = new WKBWriter(ByteOrder, handleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
             }
         }

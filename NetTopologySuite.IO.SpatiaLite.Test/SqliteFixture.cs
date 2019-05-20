@@ -112,6 +112,74 @@ WHERE [id] = 1;";
             });
         }
 
+        /// <summary>
+        /// NOTE: this code fails if we configure WkbWriter with handleSRID = Ttrue
+        /// see GeoPackageGeoWriter.cs => l.109 
+        /// </summary>
+        [Test]
+        public virtual void New_point_should_be_written()
+        {
+            var coord = new Coordinate(11.11, 22.22);
+            var point = GeometryFactory.Default.CreatePoint(coord);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table];
+INSERT INTO [sample_feature_table] ([id], [geometry])
+VALUES (1, @pbytes);";
+                    cmd.CommandText = sql;
+                    var writer = new GeoPackageGeoWriter
+                    {
+                        HandleOrdinates = Ordinates.XY
+                    };
+                    byte[] bytes = writer.Write(point);
+                    cmd.Parameters.AddWithValue("pbytes", bytes);
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT
+    geometry
+   ,ST_Is3D(geometry)
+   ,ST_IsMeasured(geometry)
+   ,ST_AsText(GeomFromGPB(geometry))   
+FROM [sample_feature_table]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+                        var gpkgReader = new GeoPackageGeoReader
+                        {
+                            HandleOrdinates = Ordinates.XY
+                        };
+                        var geom = gpkgReader.Read(blob);
+                        Assert.AreEqual(point, geom);
+                        Assert.AreEqual(point.AsText(), geom.AsText());
+
+                        Assert.IsFalse(reader.GetBoolean(1));
+                        Assert.IsFalse(reader.GetBoolean(2));
+                        string wkt = reader.GetString(3);
+                        Assert.IsFalse(string.IsNullOrEmpty(wkt));
+                        string astext = point.AsText().Replace("POINT (", "POINT(");
+                        Assert.AreEqual(astext, wkt);
+                    }
+                }
+            });
+        }
+
         [Test]
         public virtual void Existing_pointZ_should_be_read()
         {
@@ -123,8 +191,8 @@ WHERE [id] = 1;";
                 using (var cmd = conn.CreateCommand())
                 {
                     const string sql = @"
-DELETE FROM [sample_feature_table];
-INSERT INTO [sample_feature_table] ([id], [geometry])
+DELETE FROM [sample_feature_table_z];
+INSERT INTO [sample_feature_table_z] ([id], [geometry])
 VALUES (1, gpkgMakePointZ(@px, @py, @pz, 4326));";
                     cmd.CommandText = sql;
                     cmd.Parameters.AddWithValue("px", coord.X);
@@ -138,7 +206,7 @@ VALUES (1, gpkgMakePointZ(@px, @py, @pz, 4326));";
                 {
                     const string sql = @"
 SELECT geometry
-FROM [sample_feature_table]
+FROM [sample_feature_table_z]
 WHERE [id] = 1;";
                     cmd.CommandText = sql;
                     using (var reader = cmd.ExecuteReader())
@@ -165,6 +233,74 @@ WHERE [id] = 1;";
             });
         }
 
+        /// <summary>
+        /// spatialite isn't able to read Z value from written blob
+        /// </summary>
+        [Test]
+        public virtual void New_pointZ_should_be_written()
+        {
+            var coord = new Coordinate(11.11, 22.22, 33.33);
+            var point = GeometryFactory.Default.CreatePoint(coord);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table_z];
+INSERT INTO [sample_feature_table_z] ([id], [geometry])
+VALUES (1, @pbytes);";
+                    cmd.CommandText = sql;
+                    var writer = new GeoPackageGeoWriter
+                    {
+                        HandleOrdinates = Ordinates.XYZ
+                    };
+                    byte[] bytes = writer.Write(point);
+                    cmd.Parameters.AddWithValue("pbytes", bytes);
+
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT
+    geometry
+   ,ST_Is3D(geometry)
+   ,ST_IsMeasured(geometry)
+   ,ST_AsText(GeomFromGPB(geometry))   
+FROM [sample_feature_table_z]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+                        var gpkgReader = new GeoPackageGeoReader
+                        {
+                            HandleOrdinates = Ordinates.XYZ
+                        };
+                        var geom = gpkgReader.Read(blob);
+                        Assert.AreEqual(point, geom);
+                        Assert.AreEqual(point.AsText(), geom.AsText());
+
+                        Assert.IsTrue(reader.GetBoolean(1));
+                        Assert.IsFalse(reader.GetBoolean(2));
+                        string wkt = reader.GetString(3);
+                        Assert.IsFalse(string.IsNullOrEmpty(wkt));
+                        string astext = point.AsText().Replace("POINT (", "POINT(");
+                        Assert.AreEqual(astext, wkt);
+                    }
+                }
+            });
+        }
+
         [Test]
         public virtual void Existing_pointM_should_be_read()
         {
@@ -183,8 +319,8 @@ WHERE [id] = 1;";
                 using (var cmd = conn.CreateCommand())
                 {
                     const string sql = @"
-DELETE FROM [sample_feature_table];
-INSERT INTO [sample_feature_table] ([id], [geometry])
+DELETE FROM [sample_feature_table_m];
+INSERT INTO [sample_feature_table_m] ([id], [geometry])
 VALUES (1, gpkgMakePointM(@px, @py, @pm, 4326));";
                     cmd.CommandText = sql;
                     cmd.Parameters.AddWithValue("px", point.X);
@@ -198,7 +334,7 @@ VALUES (1, gpkgMakePointM(@px, @py, @pm, 4326));";
                 {
                     const string sql = @"
 SELECT geometry
-FROM [sample_feature_table]
+FROM [sample_feature_table_m]
 WHERE [id] = 1;";
                     cmd.CommandText = sql;
                     using (var reader = cmd.ExecuteReader())
@@ -211,7 +347,7 @@ WHERE [id] = 1;";
                         Array.Copy(buffer, blob, l);
 
                         var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
-                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
+                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYM);
                         var geom = gpkgReader.Read(blob);
                         Assert.IsNotNull(geom);
                         Assert.IsInstanceOf<IPoint>(geom);
@@ -220,6 +356,80 @@ WHERE [id] = 1;";
                         Assert.AreEqual(point.Coordinate, geom.Coordinate);
                         Assert.IsTrue(point.Coordinate.Equals(geom.Coordinate));
                         Assert.AreEqual(point.M, ((Point)geom).M);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// spatialite isn't able to read M value from written blob
+        /// </summary>
+        [Test]
+        public virtual void New_pointM_should_be_written()
+        {
+            var sequenceFactory = new DotSpatialAffineCoordinateSequenceFactory(Ordinates.XYM);
+            var coordinateSequence = sequenceFactory.Create(
+                new[] { 11.11, 22.22 },
+                new[] { 0.0 },
+                new[] { 44.44 });
+            var factory = new GeometryFactory(sequenceFactory);
+            var point = factory.CreatePoint(coordinateSequence);
+            Assert.AreEqual(0.0, point.Z);
+            Assert.AreEqual(44.44, point.M);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table_m];
+INSERT INTO [sample_feature_table_m] ([id], [geometry])
+VALUES (1, @pbytes);";
+                    cmd.CommandText = sql;
+                    var writer = new GeoPackageGeoWriter
+                    {
+                        HandleOrdinates = Ordinates.XYM
+                    };
+                    byte[] bytes = writer.Write(point);
+                    cmd.Parameters.AddWithValue("pbytes", bytes);
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT
+    geometry
+   ,ST_Is3D(geometry)
+   ,ST_IsMeasured(geometry)
+   ,ST_AsText(GeomFromGPB(geometry))   
+FROM [sample_feature_table_m]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+                        var gpkgReader = new GeoPackageGeoReader
+                        {
+                            HandleOrdinates = Ordinates.XYM
+                        };
+                        var geom = gpkgReader.Read(blob);
+                        Assert.AreEqual(point, geom);
+                        Assert.AreEqual(point.AsText(), geom.AsText());
+
+                        Assert.IsFalse(reader.GetBoolean(1));
+                        Assert.IsTrue(reader.GetBoolean(2));
+                        string wkt = reader.GetString(3);
+                        Assert.IsFalse(string.IsNullOrEmpty(wkt));
+                        string astext = point.AsText().Replace("POINT (", "POINT(");
+                        Assert.AreEqual(astext, wkt);
                     }
                 }
             });
@@ -243,8 +453,8 @@ WHERE [id] = 1;";
                 using (var cmd = conn.CreateCommand())
                 {
                     const string sql = @"
-DELETE FROM [sample_feature_table];
-INSERT INTO [sample_feature_table] ([id], [geometry])
+DELETE FROM [sample_feature_table_zm];
+INSERT INTO [sample_feature_table_zm] ([id], [geometry])
 VALUES (1, gpkgMakePointZM(@px, @py, @pz, @pm, 4326));";
                     cmd.CommandText = sql;
                     cmd.Parameters.AddWithValue("px", point.X);
@@ -259,7 +469,7 @@ VALUES (1, gpkgMakePointZM(@px, @py, @pz, @pm, 4326));";
                 {
                     const string sql = @"
 SELECT geometry
-FROM [sample_feature_table]
+FROM [sample_feature_table_zm]
 WHERE [id] = 1;";
                     cmd.CommandText = sql;
                     using (var reader = cmd.ExecuteReader())
@@ -283,6 +493,80 @@ WHERE [id] = 1;";
                         Assert.IsTrue(point.Coordinate.Equals3D(geom.Coordinate));
                         Assert.AreEqual(point.Z, ((Point)geom).Z);
                         Assert.AreEqual(point.M, ((Point)geom).M);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// spatialite isn't able to read Z+M values from written blob
+        /// </summary>
+        [Test]
+        public virtual void New_pointZM_should_be_written()
+        {
+            var sequenceFactory = new DotSpatialAffineCoordinateSequenceFactory(Ordinates.XYZM);
+            var coordinateSequence = sequenceFactory.Create(
+                new[] { 11.11, 22.22 },
+                new[] { 33.33 },
+                new[] { 44.44 });
+            var factory = new GeometryFactory(sequenceFactory);
+            var point = factory.CreatePoint(coordinateSequence);
+            Assert.AreEqual(33.33, point.Z);
+            Assert.AreEqual(44.44, point.M);
+
+            DoTest(conn =>
+            {
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+DELETE FROM [sample_feature_table_zm];
+INSERT INTO [sample_feature_table_zm] ([id], [geometry])
+VALUES (1, @pbytes);";
+                    cmd.CommandText = sql;
+                    var writer = new GeoPackageGeoWriter
+                    {
+                        HandleOrdinates = Ordinates.XYZM
+                    };
+                    byte[] bytes = writer.Write(point);
+                    cmd.Parameters.AddWithValue("pbytes", bytes);
+                    int ret = cmd.ExecuteNonQuery();
+                    Assert.AreEqual(1, ret);
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    const string sql = @"
+SELECT
+    geometry
+   ,ST_Is3D(geometry)
+   ,ST_IsMeasured(geometry)
+   ,ST_AsText(GeomFromGPB(geometry))   
+FROM [sample_feature_table_zm]
+WHERE [id] = 1;";
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        Assert.IsTrue(reader.Read());
+
+                        byte[] buffer = new byte[10000];
+                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
+                        Assert.IsTrue(l > 0);
+                        byte[] blob = new byte[l];
+                        Array.Copy(buffer, blob, l);
+                        var gpkgReader = new GeoPackageGeoReader
+                        {
+                            HandleOrdinates = Ordinates.XYZM
+                        };
+                        var geom = gpkgReader.Read(blob);
+                        Assert.AreEqual(point, geom);
+                        Assert.AreEqual(point.AsText(), geom.AsText());
+
+                        Assert.IsTrue(reader.GetBoolean(1));
+                        Assert.IsTrue(reader.GetBoolean(2));
+                        string wkt = reader.GetString(3);
+                        Assert.IsFalse(string.IsNullOrEmpty(wkt));
+                        string astext = point.AsText().Replace("POINT (", "POINT(");
+                        Assert.AreEqual(astext, wkt);
                     }
                 }
             });
