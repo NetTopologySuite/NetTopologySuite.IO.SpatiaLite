@@ -17,26 +17,6 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public virtual void OnFixtureSetUp()
         {
             GeoAPI.GeometryServiceProvider.Instance = NtsGeometryServices.Instance;
-
-            bool is64bit = Environment.Is64BitOperatingSystem && Environment.Is64BitProcess;
-            string spatialiteRelPath =
-                $"../../../../mod_spatialite/runtimes/{(is64bit ? "win-x64" : "win-x86")}/native";
-            string spatialiteFullPath = Path.GetFullPath(spatialiteRelPath);
-            Assert.IsTrue(Directory.Exists(spatialiteFullPath), $"path not found: {spatialiteFullPath}");
-
-            string path = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process);
-            if (path.IndexOf(is64bit
-                ? "win-x64"
-                : "win-x86", StringComparison.OrdinalIgnoreCase) == -1)
-            {
-                path = $"{path};{spatialiteFullPath};";
-                Environment.SetEnvironmentVariable("Path", path, EnvironmentVariableTarget.Process);
-                Debug.WriteLine("'mod_spatialite' libs added to env.path");
-            }
-            else
-            {
-                Debug.WriteLine("'mod_spatialite' libs already found in env.path");
-            }
         }
 
         [TearDown]
@@ -54,7 +34,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
                 conn.Open();
 
                 conn.EnableExtensions(true);
-                conn.LoadExtension("mod_spatialite");
+                conn.LoadExtension(SpatialiteLoader.FindExtension());
                 Debug.WriteLine("'mod_spatialite' extension loaded");
 
                 action(conn);
@@ -167,14 +147,13 @@ WHERE [id] = 1;";
                         };
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
-                        Assert.AreEqual(point.AsText(), geom.AsText());
+                        Assert.AreEqual(point.AsBinary(), geom.AsBinary());
 
                         Assert.IsFalse(reader.GetBoolean(1));
                         Assert.IsFalse(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
                         Assert.IsFalse(string.IsNullOrEmpty(wkt));
-                        string astext = point.AsText().Replace("POINT (", "POINT(");
-                        Assert.AreEqual(astext, wkt);
+                        Assert.AreEqual("POINT(11.11 22.22)", wkt);
                     }
                 }
             });
@@ -288,14 +267,13 @@ WHERE [id] = 1;";
                         };
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
-                        Assert.AreEqual(point.AsText(), geom.AsText());
+                        Assert.AreEqual(point.AsBinary(), geom.AsBinary());
 
                         Assert.IsTrue(reader.GetBoolean(1));
                         Assert.IsFalse(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
                         Assert.IsFalse(string.IsNullOrEmpty(wkt));
-                        string astext = point.AsText().Replace("POINT (", "POINT(");
-                        Assert.AreEqual(astext, wkt);
+                        Assert.AreEqual("POINT Z(11.11 22.22 33.33)", wkt);
                     }
                 }
             });
@@ -416,20 +394,17 @@ WHERE [id] = 1;";
                         Assert.IsTrue(l > 0);
                         byte[] blob = new byte[l];
                         Array.Copy(buffer, blob, l);
-                        var gpkgReader = new GeoPackageGeoReader
-                        {
-                            HandleOrdinates = Ordinates.XYM
-                        };
+                        var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
+                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYM);
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
-                        Assert.AreEqual(point.AsText(), geom.AsText());
+                        Assert.AreEqual(point.AsBinary(), geom.AsBinary());
 
                         Assert.IsFalse(reader.GetBoolean(1));
                         Assert.IsTrue(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
                         Assert.IsFalse(string.IsNullOrEmpty(wkt));
-                        string astext = point.AsText().Replace("POINT (", "POINT(");
-                        Assert.AreEqual(astext, wkt);
+                        Assert.AreEqual("POINT M(11.11 22.22 44.44)", wkt);
                     }
                 }
             });
@@ -553,20 +528,17 @@ WHERE [id] = 1;";
                         Assert.IsTrue(l > 0);
                         byte[] blob = new byte[l];
                         Array.Copy(buffer, blob, l);
-                        var gpkgReader = new GeoPackageGeoReader
-                        {
-                            HandleOrdinates = Ordinates.XYZM
-                        };
+                        var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
+                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
-                        Assert.AreEqual(point.AsText(), geom.AsText());
+                        Assert.AreEqual(point.AsBinary(), geom.AsBinary());
 
                         Assert.IsTrue(reader.GetBoolean(1));
                         Assert.IsTrue(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
                         Assert.IsFalse(string.IsNullOrEmpty(wkt));
-                        string astext = point.AsText().Replace("POINT (", "POINT(");
-                        Assert.AreEqual(astext, wkt);
+                        Assert.AreEqual("POINT ZM(11.11 22.22 33.33 44.44)", wkt);
                     }
                 }
             });
