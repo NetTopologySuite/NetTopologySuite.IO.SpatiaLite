@@ -1,6 +1,5 @@
 using System;
 using System.Configuration;
-using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using GeoAPI.Geometries;
@@ -45,6 +44,8 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             using (var conn = new SQLiteConnection($"Data Source=\"{Name}\""))
             {
                 conn.Open();
+                conn.EnableExtensions(true);
+                conn.LoadExtension(SpatialiteLoader.FindExtension());
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText =
