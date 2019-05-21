@@ -212,9 +212,6 @@ WHERE [id] = 1;";
             });
         }
 
-        /// <summary>
-        /// spatialite isn't able to read Z value from written blob
-        /// </summary>
         [Test]
         public virtual void New_pointZ_should_be_written()
         {
@@ -339,9 +336,6 @@ WHERE [id] = 1;";
             });
         }
 
-        /// <summary>
-        /// spatialite isn't able to read M value from written blob
-        /// </summary>
         [Test]
         public virtual void New_pointM_should_be_written()
         {
@@ -473,9 +467,6 @@ WHERE [id] = 1;";
             });
         }
 
-        /// <summary>
-        /// spatialite isn't able to read Z+M values from written blob
-        /// </summary>
         [Test]
         public virtual void New_pointZM_should_be_written()
         {

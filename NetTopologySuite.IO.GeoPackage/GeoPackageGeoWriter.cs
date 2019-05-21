@@ -104,9 +104,9 @@ namespace NetTopologySuite.IO
 
                 bool emitZ = (HandleOrdinates & Ordinates.Z) == Ordinates.Z;
                 bool emitM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
-                bool handleSRID = HandleSRID;
-                // NOTE: true breaks wkb geopackage writes! see test 'New_point_should_be_written'
-                handleSRID = false;
+                // NOTE: HandleSRID (always true) breaks wkb geopackage writes!
+                // see test 'New_point_should_be_written'
+                const bool handleSRID = false;
                 var wkbWriter = new WKBWriter(ByteOrder, handleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
             }
