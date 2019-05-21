@@ -19,15 +19,15 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             GeoAPI.GeometryServiceProvider.Instance = NtsGeometryServices.Instance;
 
             bool is64bit = Environment.Is64BitOperatingSystem && Environment.Is64BitProcess;
-            string spatialiteRelName = is64bit
-                ? "mod_spatialite-4.3.0a-win-amd64"
-                : "mod_spatialite-4.3.0a-win-x86";
-            string spatialiteRelPath = $"../../../../libs/{spatialiteRelName}";
+            string spatialiteRelPath =
+                $"../../../../mod_spatialite/runtimes/{(is64bit ? "win-x64" : "win-x86")}/native";
             string spatialiteFullPath = Path.GetFullPath(spatialiteRelPath);
             Assert.IsTrue(Directory.Exists(spatialiteFullPath), $"path not found: {spatialiteFullPath}");
 
             string path = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process);
-            if (path.IndexOf(spatialiteRelName, StringComparison.OrdinalIgnoreCase) == -1)
+            if (path.IndexOf(is64bit
+                ? "win-x64"
+                : "win-x86", StringComparison.OrdinalIgnoreCase) == -1)
             {
                 path = $"{path};{spatialiteFullPath};";
                 Environment.SetEnvironmentVariable("Path", path, EnvironmentVariableTarget.Process);
