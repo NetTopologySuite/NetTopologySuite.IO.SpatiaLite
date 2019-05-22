@@ -72,12 +72,7 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
-
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader();
                         var geom = gpkgReader.Read(blob);
                         Assert.IsNotNull(geom);
@@ -135,12 +130,7 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader
                         {
                             HandleOrdinates = Ordinates.XY
@@ -148,7 +138,6 @@ WHERE [id] = 1;";
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
                         Assert.AreEqual(point.AsBinary(), geom.AsBinary());
-
                         Assert.IsFalse(reader.GetBoolean(1));
                         Assert.IsFalse(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
@@ -191,12 +180,7 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
-
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader();
                         var geom = gpkgReader.Read(blob);
                         Assert.IsNotNull(geom);
@@ -252,12 +236,7 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader
                         {
                             HandleOrdinates = Ordinates.XYZ
@@ -265,7 +244,6 @@ WHERE [id] = 1;";
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
                         Assert.AreEqual(point.AsBinary(), geom.AsBinary());
-
                         Assert.IsTrue(reader.GetBoolean(1));
                         Assert.IsFalse(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
@@ -315,14 +293,9 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
-
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
-                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYM);
+                            new PrecisionModel(PrecisionModels.Floating));
                         var geom = gpkgReader.Read(blob);
                         Assert.IsNotNull(geom);
                         Assert.IsInstanceOf<IPoint>(geom);
@@ -382,18 +355,12 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
-                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYM);
+                            new PrecisionModel(PrecisionModels.Floating));
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
                         Assert.AreEqual(point.AsBinary(), geom.AsBinary());
-
                         Assert.IsFalse(reader.GetBoolean(1));
                         Assert.IsTrue(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);
@@ -444,14 +411,9 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
-
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
-                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
+                            new PrecisionModel(PrecisionModels.Floating));
                         var geom = gpkgReader.Read(blob);
                         Assert.IsNotNull(geom);
                         Assert.IsInstanceOf<IPoint>(geom);
@@ -513,18 +475,12 @@ WHERE [id] = 1;";
                     using (var reader = cmd.ExecuteReader())
                     {
                         Assert.IsTrue(reader.Read());
-
-                        byte[] buffer = new byte[10000];
-                        long l = reader.GetBytes(0, 0, buffer, 0, buffer.Length);
-                        Assert.IsTrue(l > 0);
-                        byte[] blob = new byte[l];
-                        Array.Copy(buffer, blob, l);
+                        byte[] blob = reader.GetFieldValue<byte[]>(0);
                         var gpkgReader = new GeoPackageGeoReader(sequenceFactory,
-                            new PrecisionModel(PrecisionModels.Floating), Ordinates.XYZM);
+                            new PrecisionModel(PrecisionModels.Floating));
                         var geom = gpkgReader.Read(blob);
                         Assert.AreEqual(point, geom);
                         Assert.AreEqual(point.AsBinary(), geom.AsBinary());
-
                         Assert.IsTrue(reader.GetBoolean(1));
                         Assert.IsTrue(reader.GetBoolean(2));
                         string wkt = reader.GetString(3);

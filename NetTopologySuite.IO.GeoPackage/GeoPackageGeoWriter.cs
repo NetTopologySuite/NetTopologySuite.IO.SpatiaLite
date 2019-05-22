@@ -104,8 +104,8 @@ namespace NetTopologySuite.IO
 
                 bool emitZ = (HandleOrdinates & Ordinates.Z) == Ordinates.Z;
                 bool emitM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
-                // NOTE: HandleSRID (always true) breaks wkb geopackage writes!
-                // see test 'New_point_should_be_written'
+                // NOTE: GeoPackage handle SRID in header, so no need to store this also in wkb;
+                // actually, trying to store srid in wkb resunts in an invalid gpkg blob value...
                 const bool handleSRID = false;
                 var wkbWriter = new WKBWriter(ByteOrder, handleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
@@ -150,7 +150,7 @@ namespace NetTopologySuite.IO
             get { return _handleOrdinates; }
             set
             {
-                value = AllowedOrdinates & value;
+                value = Ordinates.XY | (AllowedOrdinates & value);
                 _handleOrdinates = value;
             }
         }

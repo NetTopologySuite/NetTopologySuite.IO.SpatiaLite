@@ -83,13 +83,17 @@ namespace NetTopologySuite.IO
             using (var reader = new BinaryReader(stream))
             {
                 var header = GeoPackageBinaryHeader.Read(reader);
-                int count = (int)(reader.BaseStream.Length - reader.BaseStream.Position);
-                byte[] bytes = reader.ReadBytes(count);
-
                 var services = new NtsGeometryServices(_coordinateSequenceFactory,
                     _precisionModel, header.SrsId);
-                var wkbReader = new WKBReader(services);
-                var geom = wkbReader.Read(bytes);
+                // NOTE: GeoPackage handle SRID in header, so no need to read this also in wkb;
+                const bool handleSRID = false;
+                var wkbReader = new WKBReader(services)
+                {
+                    HandleSRID = handleSRID,
+                    HandleOrdinates = HandleOrdinates,
+                    RepairRings = RepairRings
+                };
+                var geom = wkbReader.Read(stream);
                 geom.SRID = header.SrsId;
                 return geom;
             }

@@ -416,7 +416,7 @@ namespace NetTopologySuite.IO
             get { return _handleOrdinates; }
             set
             {
-                value = AllowedOrdinates & value;
+                value = Ordinates.XY | (AllowedOrdinates & value);
                 _handleOrdinates = value;
             }
         }
