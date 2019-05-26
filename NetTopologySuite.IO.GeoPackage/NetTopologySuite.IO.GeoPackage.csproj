@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GeoAPI.Core" Version="1.7.5" />
-    <PackageReference Include="NetTopologySuite.Core" Version="1.15.0" />
+    <PackageReference Include="GeoAPI.Core" Version="$(GeoAPIPackageReferenceVersion)" />
+    <PackageReference Include="NetTopologySuite.Core" Version="$(NTSPackageReferenceVersion)" />
   </ItemGroup>
 </Project>
