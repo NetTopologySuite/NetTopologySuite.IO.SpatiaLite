@@ -284,7 +284,11 @@ namespace NetTopologySuite.IO
         /// <summary>
         /// Gets a value indicating the spatial reference id
         /// </summary>
-        public int SrsId => _srs_id;
+        public int SrsId
+        {
+            get => _srs_id;
+            internal set => _srs_id = value;
+        }
 
         public Envelope Extent
         {

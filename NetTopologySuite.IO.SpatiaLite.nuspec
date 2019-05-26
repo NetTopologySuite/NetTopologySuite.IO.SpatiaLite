@@ -21,7 +21,7 @@
 			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
-			<dependency id="GeoAPI" version="$geoapiversion$" />
+      <dependency id="GeoAPI.Core" version="[$geoapiversion$, 2.0.0-A)" />
 		</dependencies>
 	</metadata>
 	<files>

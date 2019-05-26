@@ -84,17 +84,20 @@ namespace NetTopologySuite.IO
             {
                 var header = GeoPackageBinaryHeader.Read(reader);
                 var services = new NtsGeometryServices(_coordinateSequenceFactory,
-                    _precisionModel, header.SrsId);
+                    _precisionModel, HandleSRID ? header.SrsId : -1);
                 // NOTE: GeoPackage handle SRID in header, so no need to read this also in wkb;
-                const bool handleSRID = false;
+                const bool dontHandleSRID = false;
                 var wkbReader = new WKBReader(services)
                 {
-                    HandleSRID = handleSRID,
+                    HandleSRID = dontHandleSRID,
                     HandleOrdinates = HandleOrdinates,
                     RepairRings = RepairRings
                 };
                 var geom = wkbReader.Read(stream);
-                geom.SRID = header.SrsId;
+                if (HandleSRID)
+                {
+                    geom.SRID = header.SrsId;
+                }
                 return geom;
             }
         }
@@ -117,7 +120,7 @@ namespace NetTopologySuite.IO
             get { return _handleOrdinates; }
             set
             {
-                value = AllowedOrdinates & value;
+                value = Ordinates.XY | (AllowedOrdinates & value);
                 _handleOrdinates = value;
             }
         }

@@ -21,7 +21,8 @@
 			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
-			<dependency id="GeoAPI" version="$geoapiversion$" />
+      <dependency id="NetTopologySuite.Core" version="[$ntsversion$, 2.0.0-A)" />
+      <dependency id="GeoAPI.Core" version="[$geoapiversion$, 2.0.0-A)" />
 		</dependencies>
 	</metadata>
 	<files>

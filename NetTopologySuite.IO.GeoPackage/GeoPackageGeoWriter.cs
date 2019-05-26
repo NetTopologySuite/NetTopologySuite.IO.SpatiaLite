@@ -98,7 +98,8 @@ namespace NetTopologySuite.IO
                 var header = new GeoPackageBinaryHeader
                 {
                     Extent = geom.EnvelopeInternal,
-                    Flags = flags
+                    Flags = flags,
+                    SrsId = HandleSRID ? geom.SRID : -1
                 };
                 GeoPackageBinaryHeader.Write(writer, header);
 
@@ -106,8 +107,8 @@ namespace NetTopologySuite.IO
                 bool emitM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
                 // NOTE: GeoPackage handle SRID in header, so no need to store this also in wkb;
                 // actually, trying to store srid in wkb resunts in an invalid gpkg blob value...
-                const bool handleSRID = false;
-                var wkbWriter = new WKBWriter(ByteOrder, handleSRID, emitZ, emitM);
+                const bool dontHandleSRID = false;
+                var wkbWriter = new WKBWriter(ByteOrder, dontHandleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
             }
         }
