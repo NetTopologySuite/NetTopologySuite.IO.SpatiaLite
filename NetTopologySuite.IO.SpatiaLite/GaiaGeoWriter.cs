@@ -1,19 +1,5 @@
-// Copyright 2011 - Felix Obermaier (ivv-aachen.de)
-//
-// This file is part of NetTopologySuite.IO.SpatiaLite
-// NetTopologySuite.IO.SpatiaLite is free software; you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// NetTopologySuite.IO.SpatiaLite is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-
-// You should have received a copy of the GNU Lesser General Public License
-// along with NetTopologySuite.IO.SpatiaLite if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// Copyright (c) Felix Obermaier (ivv-aachen.de) and the NetTopologySuite Team
+// Licensed under the BSD 3-Clause license. See LICENSE.md in the project root for license information.
 
 using System;
 using System.IO;

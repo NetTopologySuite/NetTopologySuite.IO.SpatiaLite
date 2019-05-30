@@ -1,19 +1,5 @@
-// Copyright 2019 - NetTopologySuite
-//
-// This file is part of NetTopologySuite.IO.SpatiaLite
-// NetTopologySuite.IO.SpatiaLite is free software; you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-//
-// NetTopologySuite.IO.SpatiaLite is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-
-// You should have received a copy of the GNU Lesser General Public License
-// along with NetTopologySuite.IO.SpatiaLite if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+// Copyright (c) NetTopologySuite Team
+// Licensed under the BSD 3-Clause license. See LICENSE.md in the project root for license information.
 
 using System;
 using System.IO;
@@ -26,8 +12,7 @@ namespace NetTopologySuite.IO
     /// Represents GeoPackage binary header.
     /// </summary>
     /// <remarks>
-    /// Code adapted from: https://github.com/SharpMap/SharpMap/blob/Branches/1.0/SharpMap.Data.Providers.GeoPackage/Geometry/GpkgBinaryHeader.cs
-    /// Thanks to Felix Obermaier and SharpMap team!
+    /// Code adapted from SharpMap, used with special permission.
     /// </remarks>
     /// <seealso href="http://www.geopackage.org/spec/#gpb_format"/>
     internal class GeoPackageBinaryHeader
