@@ -17,8 +17,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         protected AbstractIOFixture()
             : this(GeometryFactory.Default)
-        {
-        }
+        { }
 
         protected AbstractIOFixture(IGeometryFactory factory)
         {

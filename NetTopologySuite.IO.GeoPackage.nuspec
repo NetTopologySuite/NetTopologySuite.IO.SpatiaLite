@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
 	<metadata>
-		<id>NetTopologySuite.IO.SpatiaLite</id>
+		<id>NetTopologySuite.IO.GeoPackage</id>
 		<version>$version$</version>
-		<title>NTS - Topology Suite - IO Library for SpatiaLite</title>
+		<title>NTS - Topology Suite - IO Library for GeoPackage</title>
 		<authors>NetTopologySuite - Team</authors>
 		<owners>NetTopologySuite - Team</owners>
 		<licenseUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite/LICENSE.md</licenseUrl>
@@ -11,26 +11,27 @@
 		<iconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<description>
-      This package contains the SpatiaLite IO library.
-		</description>
-		<summary>SpatiaLite IO library for NetTopologySuite</summary>
-		<tags>NTS SpatiaLite</tags>
+      This package contains the GeoPackage IO library.
+    </description>
+		<summary>GeoPackage IO library for NetTopologySuite</summary>
+		<tags>NTS GeoPackage</tags>
 		<language>en-US</language>
 		<frameworkAssemblies>
 			<frameworkAssembly assemblyName="System" />
 			<frameworkAssembly assemblyName="System.Core" />
 		</frameworkAssemblies>
 		<dependencies>
+      <dependency id="NetTopologySuite.Core" version="[$ntsversion$, 2.0.0-A)" />
       <dependency id="GeoAPI.Core" version="[$geoapiversion$, 2.0.0-A)" />
 		</dependencies>
 	</metadata>
 	<files>
 		<file src="NetTopologySuite.Common.props" target="src" />
-		<file src="NetTopologySuite.IO.SpatiaLite\**" exclude="NetTopologySuite.IO.SpatiaLite\obj\**" target="src\NetTopologySuite.IO.SpatiaLite" />
+		<file src="NetTopologySuite.IO.GeoPackage\**" exclude="NetTopologySuite.IO.GeoPackage\obj\**" target="src\NetTopologySuite.IO.GeoPackage" />
 
-		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.deps.json" target="lib" />
-		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.dll" target="lib" />
-		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.pdb" target="lib" />
-		<file src="Release\AnyCPU\**\NetTopologySuite.IO.SpatiaLite.xml" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.deps.json" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.dll" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.pdb" target="lib" />
+		<file src="Release\AnyCPU\**\NetTopologySuite.IO.GeoPackage.xml" target="lib" />
 	</files>
 </package>
