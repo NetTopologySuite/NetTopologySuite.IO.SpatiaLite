@@ -180,23 +180,46 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static int SwapByteOrder(int val)
+        private static int SwapByteOrder(int value)
         {
-            byte[] bytes = BitConverter.GetBytes(val);
-            Array.Reverse(bytes);
-            return BitConverter.ToInt32(bytes, 0);
+            unchecked
+            {
+                return (int)SwapByteOrder((uint)value);
+            }
         }
 
-        /// <summary>
-        /// Method to swap the byte order
-        /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
         private static double SwapByteOrder(double val)
         {
-            byte[] bytes = BitConverter.GetBytes(val);
-            Array.Reverse(bytes);
-            return BitConverter.ToDouble(bytes, 0);
+            return BitConverter.Int64BitsToDouble(SwapByteOrder(BitConverter.DoubleToInt64Bits(val)));
+        }
+
+        private static uint SwapByteOrder(uint value)
+        {
+            return (value & 0x000000FF) << 24 |
+                   (value & 0x0000FF00) << 8 |
+                   (value & 0x00FF0000) >> 8 |
+                   (value & 0xFF000000) >> 24;
+        }
+
+
+        private static long SwapByteOrder(long value)
+        {
+            unchecked
+            {
+                return (long)SwapByteOrder((ulong)value);
+            }
+        }
+
+        private static ulong SwapByteOrder(ulong value)
+        {
+            return (value & 0x00000000000000FF) << 56 |
+                   (value & 0x000000000000FF00) << 40 |
+                   (value & 0x0000000000FF0000) << 24 |
+                   (value & 0x00000000FF000000) << 8 |
+                   (value & 0x000000FF00000000) >> 8 |
+                   (value & 0x0000FF0000000000) >> 24 |
+                   (value & 0x00FF000000000000) >> 40 |
+                   (value & 0xFF00000000000000) >> 56;
         }
 
         /// <summary>
