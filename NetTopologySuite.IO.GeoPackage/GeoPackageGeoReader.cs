@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+
 using GeoAPI;
 using GeoAPI.Geometries;
 using GeoAPI.IO;
@@ -22,7 +23,7 @@ namespace NetTopologySuite.IO
         /// Creates an instance of this class using the default <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
         /// </summary>
         public GeoPackageGeoReader()
-            : this(GeometryServiceProvider.Instance.DefaultCoordinateSequenceFactory, GeometryServiceProvider.Instance.DefaultPrecisionModel)
+            : this(GeometryServiceProvider.Instance.DefaultCoordinateSequenceFactory, GeometryServiceProvider.Instance.DefaultPrecisionModel, Ordinates.XYZM)
         { }
 
         /// <summary>
@@ -38,9 +39,9 @@ namespace NetTopologySuite.IO
         /// </summary>
         public GeoPackageGeoReader(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel, Ordinates handleOrdinates)
         {
-            _coordinateSequenceFactory = coordinateSequenceFactory;
-            _precisionModel = precisionModel;
-            _handleOrdinates = handleOrdinates;
+            _coordinateSequenceFactory = coordinateSequenceFactory ?? throw new ArgumentNullException(nameof(coordinateSequenceFactory));
+            _precisionModel = precisionModel ?? throw new ArgumentNullException(nameof(precisionModel));
+            HandleOrdinates = handleOrdinates;
         }
 
         /// <inheritdoc cref="IGeometryReader{TSource}.Read(TSource)"/>>
@@ -51,10 +52,8 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(blob));
             }
 
-            using (var stream = new MemoryStream(blob))
-            {
-                return Read(stream);
-            }
+            // stream is disposed at the end of Read, no need to dispose it again here.
+            return Read(new MemoryStream(blob));
         }
 
         /// <inheritdoc cref="IGeometryReader{TSource}.Read(Stream)"/>>
@@ -70,19 +69,28 @@ namespace NetTopologySuite.IO
                 var header = GeoPackageBinaryHeader.Read(reader);
                 var services = new NtsGeometryServices(_coordinateSequenceFactory,
                     _precisionModel, HandleSRID ? header.SrsId : -1);
-                // NOTE: GeoPackage handle SRID in header, so no need to read this also in wkb;
-                const bool dontHandleSRID = false;
+
                 var wkbReader = new WKBReader(services)
                 {
-                    HandleSRID = dontHandleSRID,
                     HandleOrdinates = HandleOrdinates,
-                    RepairRings = RepairRings
+                    RepairRings = RepairRings,
+
+                    // NOTE: GeoPackage handle SRID in header, so no need to read this also in wkb;
+                    HandleSRID = false,
                 };
                 var geom = wkbReader.Read(stream);
                 if (HandleSRID)
                 {
                     geom.SRID = header.SrsId;
                 }
+
+                if (header.IsEmpty && geom.OgcGeometryType == OgcGeometryType.Point)
+                {
+                    // In GeoPackages these points SHALL be encoded as a Point where each coordinate
+                    // value is set to an IEEE-754 quiet NaN value.
+                    geom = geom.Factory.CreatePoint();
+                }
+
                 return geom;
             }
         }
@@ -94,15 +102,12 @@ namespace NetTopologySuite.IO
         public bool HandleSRID { get; set; }
 
         /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>>
-        public Ordinates AllowedOrdinates
-        {
-            get { return Ordinates.XYZM; }
-        }
+        public Ordinates AllowedOrdinates => Ordinates.XYZM;
 
         /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>>
         public Ordinates HandleOrdinates
         {
-            get { return _handleOrdinates; }
+            get => _handleOrdinates;
             set
             {
                 value = Ordinates.XY | (AllowedOrdinates & value);

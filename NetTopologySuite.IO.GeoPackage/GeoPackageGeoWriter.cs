@@ -3,9 +3,11 @@
 
 using System;
 using System.IO;
-using GeoAPI;
+
 using GeoAPI.Geometries;
 using GeoAPI.IO;
+
+using NetTopologySuite.Geometries.Implementation;
 
 namespace NetTopologySuite.IO
 {
@@ -14,34 +16,7 @@ namespace NetTopologySuite.IO
     /// </summary>
     public class GeoPackageGeoWriter : IBinaryGeometryWriter
     {
-        private readonly IPrecisionModel _precisionModel;
-        private readonly ICoordinateSequenceFactory _coordinateSequenceFactory;
-        private Ordinates _handleOrdinates;
-
-        /// <summary>
-        /// Creates an instance of this class using the default <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
-        /// </summary>
-        public GeoPackageGeoWriter()
-            : this(GeometryServiceProvider.Instance.DefaultCoordinateSequenceFactory, GeometryServiceProvider.Instance.DefaultPrecisionModel)
-        { }
-
-        /// <summary>
-        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
-        /// </summary>
-        public GeoPackageGeoWriter(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel)
-            : this(coordinateSequenceFactory, precisionModel, Ordinates.XYZM)
-        { }
-
-        /// <summary>
-        /// Creates an instance of this class using the provided <see cref="ICoordinateSequenceFactory"/> and <see cref="IPrecisionModel"/> to use.
-        /// Additionally the ordinate values that are to be handled can be set.
-        /// </summary>
-        public GeoPackageGeoWriter(ICoordinateSequenceFactory coordinateSequenceFactory, IPrecisionModel precisionModel, Ordinates handleOrdinates)
-        {
-            _coordinateSequenceFactory = coordinateSequenceFactory;
-            _precisionModel = precisionModel;
-            _handleOrdinates = handleOrdinates;
-        }
+        private Ordinates _handleOrdinates = Ordinates.XYZM;
 
         /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry, Stream)"/>>
         public void Write(IGeometry geom, Stream stream)
@@ -58,7 +33,7 @@ namespace NetTopologySuite.IO
             using (var writer = new BinaryWriter(stream))
             {
                 int byteOrder = (int)ByteOrder;
-                int ordinates;
+                int ordinates = 0;
                 switch (HandleOrdinates)
                 {
                     case Ordinates.None:
@@ -76,8 +51,6 @@ namespace NetTopologySuite.IO
                     case Ordinates.XYZM:
                         ordinates = 4;
                         break;
-                    default:
-                        throw new ArgumentOutOfRangeException("HandleOrdinates");
                 }
                 int isEmpty = geom.IsEmpty ? 1 : 0;
                 byte flags = (byte)(byteOrder + (ordinates << 1) + (isEmpty << 4));
@@ -91,8 +64,23 @@ namespace NetTopologySuite.IO
 
                 bool emitZ = (HandleOrdinates & Ordinates.Z) == Ordinates.Z;
                 bool emitM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
-                // NOTE: GeoPackage handle SRID in header, so no need to store this also in wkb;
-                // actually, trying to store srid in wkb resunts in an invalid gpkg blob value...
+
+                if (isEmpty == 1 && geom.OgcGeometryType == OgcGeometryType.Point)
+                {
+                    // In GeoPackages these points SHALL be encoded as a Point where each coordinate
+                    // value is set to an IEEE-754 quiet NaN value.
+                    double qnan = BitConverter.Int64BitsToDouble(0x7FF8000000000000);
+                    int dimension = 2 + (emitZ ? 1 : 0) + (emitM ? 1 : 0);
+                    double[] ords = new double[dimension];
+                    for (int i = 0; i < ords.Length; i++)
+                    {
+                        ords[i] = qnan;
+                    }
+
+                    geom = geom.Factory.CreatePoint(new PackedDoubleCoordinateSequence(ords, dimension));
+                }
+
+                // NOTE: GeoPackage handles SRID in its own header.  It would be invalid here.
                 const bool dontHandleSRID = false;
                 var wkbWriter = new WKBWriter(ByteOrder, dontHandleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
@@ -107,17 +95,16 @@ namespace NetTopologySuite.IO
                 throw new ArgumentNullException(nameof(geom));
             }
 
-            using (var stream = new MemoryStream())
-            {
-                Write(geom, stream);
-                return stream.ToArray();
-            }
+            // stream is disposed at the end of Write, no need to dispose it again here.
+            var stream = new MemoryStream();
+            Write(geom, stream);
+            return stream.ToArray();
         }
 
         /// <inheritdoc cref="IGeometryIOSettings.HandleSRID"/>
         public bool HandleSRID
         {
-            get { return true; }
+            get => true;
             set
             {
                 if (!value)
@@ -126,15 +113,12 @@ namespace NetTopologySuite.IO
         }
 
         /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>
-        public Ordinates AllowedOrdinates
-        {
-            get { return Ordinates.XYZM; }
-        }
+        public Ordinates AllowedOrdinates => Ordinates.XYZM;
 
         /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>
         public Ordinates HandleOrdinates
         {
-            get { return _handleOrdinates; }
+            get => _handleOrdinates;
             set
             {
                 value = Ordinates.XY | (AllowedOrdinates & value);
@@ -145,7 +129,7 @@ namespace NetTopologySuite.IO
         /// <inheritdoc cref="IBinaryGeometryWriter.ByteOrder"/>
         public ByteOrder ByteOrder
         {
-            get { return ByteOrder.LittleEndian; }
+            get => ByteOrder.LittleEndian;
             set
             {
                 if (value != ByteOrder.LittleEndian)
