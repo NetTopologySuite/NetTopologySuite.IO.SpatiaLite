@@ -6,7 +6,7 @@
 		<title>NTS - Topology Suite - IO Library for SpatiaLite</title>
 		<authors>NetTopologySuite - Team</authors>
 		<owners>NetTopologySuite - Team</owners>
-		<licenseUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite/LICENSE.md</licenseUrl>
+		<license type="expression">BSD-3-Clause</license>
 		<projectUrl>https://github.com/NetTopologySuite/NetTopologySuite.IO.SpatiaLite</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/NetTopologySuite/GeoAPI/master/icon.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
