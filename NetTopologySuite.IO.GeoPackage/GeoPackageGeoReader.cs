@@ -26,7 +26,6 @@ namespace NetTopologySuite.IO
     /// <summary>
     /// Class to read GeoPackage geometries from an array of bytes
     /// </summary>
-    /// <seealso href="https://github.com/SharpMap/SharpMap/blob/Branches/1.0/SharpMap.Data.Providers.GeoPackage/Geometry/GpkgStandardBinary.cs"/>
     public class GeoPackageGeoReader : IBinaryGeometryReader
     {
         private readonly IPrecisionModel _precisionModel;

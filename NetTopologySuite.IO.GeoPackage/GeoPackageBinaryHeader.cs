@@ -26,8 +26,7 @@ namespace NetTopologySuite.IO
     /// Represents GeoPackage binary header.
     /// </summary>
     /// <remarks>
-    /// Code adapted from: https://github.com/SharpMap/SharpMap/blob/Branches/1.0/SharpMap.Data.Providers.GeoPackage/Geometry/GpkgBinaryHeader.cs
-    /// Thanks to Felix Obermaier and SharpMap team!
+    /// Code adapted from SharpMap, used with special permission.
     /// </remarks>
     /// <seealso href="http://www.geopackage.org/spec/#gpb_format"/>
     internal class GeoPackageBinaryHeader

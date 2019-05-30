@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
+		ACKNOWLEDGEMENTS.md = ACKNOWLEDGEMENTS.md
 		LICENSE.md = LICENSE.md
 		NetTopologySuite.Common.props = NetTopologySuite.Common.props
 		NetTopologySuite.IO.GeoPackage.nuspec = NetTopologySuite.IO.GeoPackage.nuspec
