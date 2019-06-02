@@ -2,10 +2,9 @@
 <Project>
 
   <Import Project="../Directory.Build.props" />
-  
+
   <PropertyGroup>
-    <OutputPath>$(SolutionDir)$(Configuration)\$(Platform)</OutputPath>
-    <DocumentationFile>$(OutputPath)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Travis-CI -->
