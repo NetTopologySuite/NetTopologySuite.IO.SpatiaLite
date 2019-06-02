@@ -4,8 +4,6 @@
   <PropertyGroup>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)</SolutionDir>
 
-    <RestoreAdditionalProjectSources>$(RestoreAdditionalProjectSources);https://www.myget.org/F/nettopologysuite/api/v3/index.json</RestoreAdditionalProjectSources>
-
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)nts.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 

@@ -1,0 +1,35 @@
+language: csharp
+mono: none
+sudo: false
+dotnet: 2.2
+dist: xenial
+
+
+script:
+  - dotnet build -c Release
+  - dotnet test  -c Release --no-build
+  - dotnet pack  -c Release --no-build -p:NoWarn=NU5105
+
+
+deploy:
+
+
+  - on:
+      branch: master
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+    skip_cleanup: true
+
+
+  - on:
+      branch: develop
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+    skip_cleanup: true
+
+env:
+  global:
+  - secure: pfAgnHo5GL1XNQJYisZabmixGakixyHX4eUrWya/AHQP9cB4Bvp2x1gCgv6yJ7UWo8MFwhMU5o7Tnxl3IEqaqowk1UX5OxrkW0Hg7DoYkDXWMt+9Jw5Rrr1FWFVbDZiOC6rqBsUHKUvPqLpMxyxm8Bz0LKiD/JMgTbqIWC5U+4cEskLsTQzDP4112RujoG4ayESID+OwbcsRu2/CgLsHFXPpBIOvNp/ZQTFQlLu598JWYnwrQHD3xFuqn8dwaANCBGYFKGG7yJ2FVXrzqFTPqTXr6K7ZHJFAYZ7G9Xtzz6lsnJVZib4cg9WDKwPIw2f/q/BzVOLM8MRziGuiwD7t3LtdBM5UCzUxUOV+NngcC01eYv2B61XtXD4/dPDXafmeaCxoqNQPgLavERI1NuYLDdiTZKKjE3dW6HHpiLVQ6Y8nzKH0GOyanEnjJ0ROkgJpDu+6Q6hkd36JvCeQpqeXIXxechzW1xGEyX7utYD0y9lLRpPB5eNalGeqeSsk/EzBBmKmendKidKSk+5b7oS53cKgo0rgXkETWjQF2kri2QE/iVi2RjmRONCrraILo7OAKhHwB0/BR0sAh7TCwTb39INuGujJliop6AayDcBimfJSyCVOVNHni50tHDzPwCXB6ZIZAsO7eNMNRvUgQiplI19nYL7b2I9t+B44NNWPq+I=
+  - secure: I7nFBB6GHY4szMkte4ak5ypBfJzkvePPFQh2ZEnqWCL4r6B+dPjz+WrV8zaEg5N5J+2mbWxB2zPgqh3k2mZmfCdJoYnprkqn2eEL8IZei7ruiIuwauFFBMQ9qgWxQZ4OgZzhQRwmY1aBJcMKYnEOPOaCQY/NmhBnkg75Om10xdZQrZBkbDzsBgVzglo1jOlu/0R3uqjiyPzmifQD9J3iEKxV+ho9ccG61kMOsuaSxQOUnJ+iv1ag5pL3dqh9aZxqLeXnXvacaF7ONAupqLRZtgkInimoHcMowzowIJMopHqAGzhBKPUMNMLukejfZz0PjiMNX9mfDt+eNRNq2LCxJMoOh/GoQfb7iKiAOpypT7Kp/Y8JgyOcUzP0QWHPFf1jntrGAs8WRGz3kfZDQgSx4tB9ac4tPjBFUt36BB1Cn6Q0cOeDMsD54q7kAez7aQlm1GS2rzcV009u4/eQOpPYAibUb14rSliJaN9V+ovp2vC/A+XeFAtgXam2HgcP1A3lcxx+9dTmQO7GBFDqIDmalsVNZ/zcSWKv3VrrIN5CPhn5ILz/CLjr60nA4So+yQ9Tdd5b73EUCLTX1LpntvgmgCQvXgiFvREWMLOputrVwO/SOyBSRWRdBv/6FD9yAESZZQwbVo70TktFfZPUGp6AQsvNyP9/bTu1sTcY/gZksDw=
