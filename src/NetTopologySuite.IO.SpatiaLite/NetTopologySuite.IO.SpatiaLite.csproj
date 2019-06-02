@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet Package Info">
-    <PackageId>NetTopologySuite.IO.GeoPackage</PackageId>
+    <PackageId>NetTopologySuite.IO.SpatiaLite</PackageId>
     <Title>NTS - Topology Suite - IO Library for SpatiaLite</Title>
     <Authors>NetTopologySuite - Team</Authors>
     <Owners>NetTopologySuite - Team</Owners>
