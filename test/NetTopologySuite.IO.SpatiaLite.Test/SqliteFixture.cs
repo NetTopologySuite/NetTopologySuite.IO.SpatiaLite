@@ -1,5 +1,4 @@
-﻿using GeoAPI.Geometries;
-using NetTopologySuite.Geometries;
+﻿using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NUnit.Framework;
 using System;
@@ -14,10 +13,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
     public class SqliteFixture
     {
         [SetUp]
-        public virtual void OnFixtureSetUp()
-        {
-            GeoAPI.GeometryServiceProvider.Instance = NtsGeometryServices.Instance;
-        }
+        public virtual void OnFixtureSetUp() { }
 
         [TearDown]
         public virtual void OnFixtureTearDown() { }
@@ -76,7 +72,7 @@ WHERE [id] = 1;";
                         var reader = new GeoPackageGeoReader();
                         var geom = reader.Read(blob);
                         Assert.IsNotNull(geom);
-                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.IsInstanceOf<Point>(geom);
                         Assert.AreEqual(point, geom);
                         Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(coord, geom.Coordinate);
@@ -151,7 +147,7 @@ WHERE [id] = 1;";
         [Test]
         public virtual void Existing_pointZ_should_be_read()
         {
-            var coord = new Coordinate(11.11, 22.22, 33.33);
+            var coord = new CoordinateZ(11.11, 22.22, 33.33);
             var point = GeometryFactory.Default.CreatePoint(coord);
 
             DoTest(conn =>
@@ -184,12 +180,14 @@ WHERE [id] = 1;";
                         var reader = new GeoPackageGeoReader();
                         var geom = reader.Read(blob);
                         Assert.IsNotNull(geom);
-                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.IsInstanceOf<Point>(geom);
                         Assert.AreEqual(point, geom);
                         Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(coord, geom.Coordinate);
                         Assert.IsTrue(coord.Equals(geom.Coordinate));
-                        Assert.IsTrue(coord.Equals3D(geom.Coordinate));
+                        Assert.IsInstanceOf<CoordinateZ>(geom.Coordinate);
+                        var coordZ = (CoordinateZ)geom.Coordinate;
+                        Assert.IsTrue(coord.Equals3D(coordZ));
                         Assert.AreEqual(coord.Z, geom.Coordinate.Z);
                     }
                 }
@@ -199,7 +197,7 @@ WHERE [id] = 1;";
         [Test]
         public virtual void New_pointZ_should_be_written()
         {
-            var coord = new Coordinate(11.11, 22.22, 33.33);
+            var coord = new CoordinateZ(11.11, 22.22, 33.33);
             var point = GeometryFactory.Default.CreatePoint(coord);
 
             DoTest(conn =>
@@ -298,7 +296,7 @@ WHERE [id] = 1;";
                             new PrecisionModel(PrecisionModels.Floating));
                         var geom = reader.Read(blob);
                         Assert.IsNotNull(geom);
-                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.IsInstanceOf<Point>(geom);
                         Assert.AreEqual(point, geom);
                         Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(point.Coordinate, geom.Coordinate);
@@ -416,12 +414,14 @@ WHERE [id] = 1;";
                             new PrecisionModel(PrecisionModels.Floating));
                         var geom = reader.Read(blob);
                         Assert.IsNotNull(geom);
-                        Assert.IsInstanceOf<IPoint>(geom);
+                        Assert.IsInstanceOf<Point>(geom);
                         Assert.AreEqual(point, geom);
                         Assert.IsTrue(point.EqualsExact(geom));
                         Assert.AreEqual(point.Coordinate, geom.Coordinate);
                         Assert.IsTrue(point.Coordinate.Equals(geom.Coordinate));
-                        Assert.IsTrue(point.Coordinate.Equals3D(geom.Coordinate));
+                        Assert.IsInstanceOf<CoordinateZ>(geom.Coordinate);
+                        var coordZ = (CoordinateZ)geom.Coordinate;
+                        Assert.IsTrue(((CoordinateZ)point.Coordinate).Equals3D(coordZ));
                         Assert.AreEqual(point.Z, ((Point)geom).Z);
                         Assert.AreEqual(point.M, ((Point)geom).M);
                     }
@@ -511,7 +511,6 @@ VALUES (1, @pbytes);";
                     {
                         HandleOrdinates = Ordinates.XY
                     };
-                    Assert.IsTrue(writer.HandleSRID);
                     byte[] bytes = writer.Write(point);
                     cmd.Parameters.AddWithValue("pbytes", bytes);
                     int ret = cmd.ExecuteNonQuery();
@@ -566,7 +565,6 @@ VALUES (1, @pbytes);";
                     {
                         HandleOrdinates = Ordinates.XY
                     };
-                    Assert.IsTrue(writer.HandleSRID);
                     byte[] bytes = writer.Write(point);
                     cmd.Parameters.AddWithValue("pbytes", bytes);
                     int ret = cmd.ExecuteNonQuery();

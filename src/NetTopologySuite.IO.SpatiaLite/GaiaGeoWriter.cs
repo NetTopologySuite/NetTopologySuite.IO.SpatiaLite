@@ -3,27 +3,61 @@
 
 using System;
 using System.IO;
-using GeoAPI.Geometries;
-using GeoAPI.IO;
+using NetTopologySuite.Geometries;
 
 namespace NetTopologySuite.IO
 {
     /// <summary>
     /// Creates a 
     /// </summary>
-    public class GaiaGeoWriter : IBinaryGeometryWriter
+    public class GaiaGeoWriter
     {
-        private Ordinates _handleOrdinates;
+        /// <summary>
+        /// Gets the <see cref="Ordinates"/> that this class can write.
+        /// </summary>
+        public static readonly Ordinates AllowedOrdinates = Ordinates.XYZM;
 
-        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry, Stream)"/>>
-        public void Write(IGeometry geometry, Stream stream)
+        private Ordinates _handleOrdinates = AllowedOrdinates;
+
+        /// <summary>
+        /// Gets or sets the maximum <see cref="Ordinates"/> to write out.
+        /// The default is equivalent to <see cref="AllowedOrdinates"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The purpose of this property is to <b>restrict</b> what gets written out to ensure that,
+        /// e.g., Z values are never written out even if present on a geometry instance.  Ordinates
+        /// that are not present on a geometry instance will be omitted regardless of this value.
+        /// </para>
+        /// <para>
+        /// Flags not present in <see cref="AllowedOrdinates"/> are silently ignored.
+        /// </para>
+        /// <para>
+        /// <see cref="Ordinates.X"/> and <see cref="Ordinates.Y"/> are always present.
+        /// </para>
+        /// </remarks>
+        public Ordinates HandleOrdinates
+        {
+            get => _handleOrdinates;
+            set
+            {
+                value = Ordinates.XY | (AllowedOrdinates & value);
+                _handleOrdinates = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets whether geometries should be written in compressed form
+        /// </summary>
+        public bool UseCompressed { get; set; }
+
+        public void Write(Geometry geometry, Stream stream)
         {
             var g = Write(geometry);
             stream.Write(g, 0, g.Length);
         }
 
-        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry)"/>>
-        public byte[] Write(IGeometry geom)
+        public byte[] Write(Geometry geom)
         {
             //if (geom.IsEmpty)
             //    return GaiaGeoEmptyHelper.EmptyGeometryCollectionWithSrid(geom.SRID);
@@ -88,7 +122,7 @@ namespace NetTopologySuite.IO
             return WriteCompressedXY;
         }
 
-        private static void WriteGeometry(IGeometry geom, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteGeometry(Geometry geom, GaiaExport gaiaExport, BinaryWriter bw)
         {
             WriteCoordinates writeCoordinates = SetWriteCoordinatesFunction(gaiaExport);
 
@@ -101,38 +135,38 @@ namespace NetTopologySuite.IO
             {
                 case OgcGeometryType.Point:
                     gaiaExport.WriteInt32(bw, (int)(GaiaGeoGeometry.GAIA_POINT) | coordinateFlagNotValidForCompression);
-                    WritePoint((IPoint)geom, writeCoordinates, gaiaExport, bw);
+                    WritePoint((Point)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.LineString:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_LINESTRING | coordinateFlag);
-                    WriteLineString((ILineString)geom, writeCoordinates, gaiaExport, bw);
+                    WriteLineString((LineString)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.Polygon:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_POLYGON | coordinateFlag);
-                    WritePolygon((IPolygon)geom, writeCoordinates, gaiaExport, bw);
+                    WritePolygon((Polygon)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.MultiPoint:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOINT | coordinateFlagNotValidForCompression);
-                    WriteMultiPoint((IMultiPoint)geom, writeCoordinates, gaiaExport, bw);
+                    WriteMultiPoint((MultiPoint)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.MultiLineString:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTILINESTRING | coordinateFlag);
-                    WriteMultiLineString((IMultiLineString)geom, writeCoordinates, gaiaExport, bw);
+                    WriteMultiLineString((MultiLineString)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.MultiPolygon:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOLYGON | coordinateFlag);
-                    WriteMultiPolygon((IMultiPolygon)geom, writeCoordinates, gaiaExport, bw);
+                    WriteMultiPolygon((MultiPolygon)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.GeometryCollection:
                     gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_GEOMETRYCOLLECTION | coordinateFlagNotValidForCompression);
-                    WriteGeometryCollection((IGeometryCollection)geom, gaiaExport, bw);
+                    WriteGeometryCollection((GeometryCollection)geom, gaiaExport, bw);
                     break;
                 default:
                     throw new ArgumentException("unknown geometry type");
             }
         }
 
-        private static void WriteGeometryCollection(IGeometryCollection geom, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteGeometryCollection(GeometryCollection geom, GaiaExport gaiaExport, BinaryWriter bw)
         {
             gaiaExport.WriteInt32(bw, geom.NumGeometries);
             for (var i = 0; i < geom.NumGeometries; i++)
@@ -142,29 +176,29 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static void WriteMultiPolygon(IGeometryCollection geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteMultiPolygon(GeometryCollection geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             gaiaExport.WriteInt32(bw, geom.NumGeometries);
             for (var i = 0; i < geom.NumGeometries; i++)
             {
                 bw.Write((byte)GaiaGeoBlobMark.GAIA_MARK_ENTITY);
                 gaiaExport.WriteInt32(bw, gaiaExport.CoordinateFlag | (int)GaiaGeoGeometry.GAIA_POLYGON);
-                WritePolygon((IPolygon)geom[i], writeCoordinates, gaiaExport, bw);
+                WritePolygon((Polygon)geom[i], writeCoordinates, gaiaExport, bw);
             }
         }
 
-        private static void WriteMultiLineString(IMultiLineString geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteMultiLineString(MultiLineString geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             gaiaExport.WriteInt32(bw, geom.NumGeometries);
             for (var i = 0; i < geom.NumGeometries; i++)
             {
                 bw.Write((byte)GaiaGeoBlobMark.GAIA_MARK_ENTITY);
                 gaiaExport.WriteInt32(bw, gaiaExport.CoordinateFlag | (int)GaiaGeoGeometry.GAIA_LINESTRING);
-                WriteLineString((ILineString)geom[i], writeCoordinates, gaiaExport, bw);
+                WriteLineString((LineString)geom[i], writeCoordinates, gaiaExport, bw);
             }
         }
 
-        private static void WriteMultiPoint(IMultiPoint geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteMultiPoint(MultiPoint geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             var wi = gaiaExport.WriteInt32;
 
@@ -183,11 +217,11 @@ namespace NetTopologySuite.IO
                 wi(bw, coordinateFlag + (int)GaiaGeoGeometryEntity.GAIA_TYPE_POINT);
 
                 //write coordinates
-                writeCoordinates(((IPoint)geom[i]).CoordinateSequence, gaiaExport, bw);
+                writeCoordinates(((Point)geom[i]).CoordinateSequence, gaiaExport, bw);
             }
         }
 
-        private static void WritePolygon(IPolygon geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WritePolygon(Polygon geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             gaiaExport.WriteInt32(bw, geom.NumInteriorRings + 1);
             WriteLineString(geom.Shell, writeCoordinates, gaiaExport, bw);
@@ -195,14 +229,14 @@ namespace NetTopologySuite.IO
                 WriteLineString(geom.GetInteriorRingN(i), writeCoordinates, gaiaExport, bw);
         }
 
-        private static void WriteLineString(ILineString geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WriteLineString(LineString geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             var seq = geom.CoordinateSequence;
             gaiaExport.WriteInt32(bw, seq.Count);
             writeCoordinates(geom.CoordinateSequence, gaiaExport, bw);
         }
 
-        private static void WritePoint(IPoint geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
+        private static void WritePoint(Point geom, WriteCoordinates writeCoordinates, GaiaExport gaiaExport, BinaryWriter bw)
         {
             writeCoordinates(geom.CoordinateSequence, gaiaExport, bw);
         }
@@ -230,9 +264,9 @@ namespace NetTopologySuite.IO
             return gaiaExport;
         }
 
-        private delegate void WriteCoordinates(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw);
+        private delegate void WriteCoordinates(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw);
 
-        private static void WriteXY(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteXY(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
 
@@ -243,7 +277,7 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static void WriteXYZ(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteXYZ(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
             for (var i = 0; i < coordinateSequence.Count; i++)
@@ -253,7 +287,7 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static void WriteXYM(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteXYM(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
             for (var i = 0; i < coordinateSequence.Count; i++)
@@ -263,7 +297,7 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static void WriteXYZM(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteXYZM(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
             for (var i = 0; i < coordinateSequence.Count; i++)
@@ -273,7 +307,7 @@ namespace NetTopologySuite.IO
             }
         }
 
-        private static void WriteCompressedXY(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteCompressedXY(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
 
@@ -299,7 +333,7 @@ namespace NetTopologySuite.IO
             wd(bw, cprev.X, cprev.Y);
         }
 
-        private static void WriteCompressedXYZ(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteCompressedXYZ(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
 
@@ -324,7 +358,7 @@ namespace NetTopologySuite.IO
             wd(bw, cprev.X, cprev.Y, cprev.Z);
         }
 
-        private static void WriteCompressedXYM(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteCompressedXYM(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
 
@@ -351,7 +385,7 @@ namespace NetTopologySuite.IO
             wd(bw, cprev.X, cprev.Y, mprev);
         }
 
-        private static void WriteCompressedXYZM(ICoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
+        private static void WriteCompressedXYZM(CoordinateSequence coordinateSequence, GaiaExport export, BinaryWriter bw)
         {
             var wd = export.WriteDouble;
 
@@ -378,49 +412,5 @@ namespace NetTopologySuite.IO
             mprev = coordinateSequence.GetOrdinate(maxIndex, Ordinate.M);
             wd(bw, cprev.X, cprev.Y, cprev.Z, mprev);
         }
-
-        /// <inheritdoc cref="IGeometryIOSettings.HandleSRID"/>
-        public bool HandleSRID
-        {
-            get { return true; }
-            set
-            {
-                if (!value)
-                    throw new InvalidOperationException("Always write SRID value!");
-            }
-        }
-
-        /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>
-        public Ordinates AllowedOrdinates
-        {
-            get { return Ordinates.XYZM; }
-        }
-
-        /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>
-        public Ordinates HandleOrdinates
-        {
-            get { return _handleOrdinates; }
-            set
-            {
-                value = Ordinates.XY | (AllowedOrdinates & value);
-                _handleOrdinates = value;
-            }
-        }
-
-        /// <inheritdoc cref="IBinaryGeometryWriter.ByteOrder"/>
-        public ByteOrder ByteOrder
-        {
-            get { return ByteOrder.LittleEndian; }
-            set
-            {
-                if (value != ByteOrder.LittleEndian)
-                    throw new InvalidOperationException("Always use LittleEndian!");
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets whether geometries should be written in compressed form
-        /// </summary>
-        public bool UseCompressed { get; set; }
     }
 }

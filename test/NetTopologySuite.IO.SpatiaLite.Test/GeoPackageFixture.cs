@@ -2,7 +2,7 @@ using System;
 using System.Configuration;
 using System.Data.SQLite;
 using System.IO;
-using GeoAPI.Geometries;
+using NetTopologySuite.Geometries;
 using NUnit.Framework;
 
 namespace NetTopologySuite.IO.SpatiaLite.Test
@@ -55,7 +55,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             }
         }
 
-        protected override void CheckEquality(IGeometry gIn, IGeometry gParsed, WKTWriter writer)
+        protected override void CheckEquality(Geometry gIn, Geometry gParsed, WKTWriter writer)
         {
             var res = gIn.EqualsExact(gParsed);
             if (res) return;
@@ -76,13 +76,13 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             else Assert.IsTrue(false);
         }
 
-        protected override IGeometry Read(byte[] bytes)
+        protected override Geometry Read(byte[] bytes)
         {
             var reader = new GeoPackageGeoReader();
             return reader.Read(bytes);
         }
 
-        protected override byte[] Write(IGeometry geom)
+        protected override byte[] Write(Geometry geom)
         {
             var writer = new GeoPackageGeoWriter
             {

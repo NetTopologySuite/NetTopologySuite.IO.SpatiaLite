@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.110" />
+    <PackageReference Include="mod_spatialite" Version="4.3.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.GeoPackage\NetTopologySuite.IO.GeoPackage.csproj" />
+    <ProjectReference Include="$(SolutionDir)src\NetTopologySuite.IO.SpatiaLite\NetTopologySuite.IO.SpatiaLite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="*.gpkg" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
