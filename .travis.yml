@@ -21,7 +21,8 @@ deploy:
       branch: master
     provider: script
     script:
-      - dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+      - dotnet nuget push **/*GeoPackage*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+      - dotnet nuget push **/*SpatiaLite*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
     skip_cleanup: true
 
 
@@ -29,7 +30,8 @@ deploy:
       branch: develop
     provider: script
     script:
-      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+      - dotnet nuget push **/*GeoPackage*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+      - dotnet nuget push **/*SpatiaLite*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
     skip_cleanup: true
 
 env:
