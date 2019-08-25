@@ -22,6 +22,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NetTopologySuite" Version="[2.0.0-pre.180490929+ci.travis.669, 3.0.0-A)" />
+    <PackageReference Include="NetTopologySuite" Version="[2.0.0-pre001, 3.0.0-A)" />
   </ItemGroup>
 </Project>
