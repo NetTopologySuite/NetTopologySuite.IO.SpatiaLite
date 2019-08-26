@@ -4,9 +4,7 @@
 using System;
 using System.IO;
 
-using GeoAPI.Geometries;
-using GeoAPI.IO;
-
+using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 
 namespace NetTopologySuite.IO
@@ -14,12 +12,49 @@ namespace NetTopologySuite.IO
     /// <summary>
     /// Creates a 
     /// </summary>
-    public class GeoPackageGeoWriter : IBinaryGeometryWriter
+    public class GeoPackageGeoWriter
     {
-        private Ordinates _handleOrdinates = Ordinates.XYZM;
+        /// <summary>
+        /// Gets the <see cref="Ordinates"/> that this class can write.
+        /// </summary>
+        public static readonly Ordinates AllowedOrdinates = Ordinates.XYZM;
 
-        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry, Stream)"/>>
-        public void Write(IGeometry geom, Stream stream)
+        private Ordinates _handleOrdinates = AllowedOrdinates;
+
+        /// <summary>
+        /// Gets or sets the maximum <see cref="Ordinates"/> to write out.
+        /// The default is equivalent to <see cref="AllowedOrdinates"/>.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The purpose of this property is to <b>restrict</b> what gets written out to ensure that,
+        /// e.g., Z values are never written out even if present on a geometry instance.  Ordinates
+        /// that are not present on a geometry instance will be omitted regardless of this value.
+        /// </para>
+        /// <para>
+        /// Flags not present in <see cref="AllowedOrdinates"/> are silently ignored.
+        /// </para>
+        /// <para>
+        /// <see cref="Ordinates.X"/> and <see cref="Ordinates.Y"/> are always present.
+        /// </para>
+        /// </remarks>
+        public Ordinates HandleOrdinates
+        {
+            get => _handleOrdinates;
+            set
+            {
+                value = Ordinates.XY | (AllowedOrdinates & value);
+                _handleOrdinates = value;
+            }
+        }
+
+        /// <summary>
+        /// Serializes a given <see cref="Geometry"/> to a given <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="geom">The <see cref="Geometry"/> to serialize.</param>
+        /// <param name="stream">The <see cref="Stream"/> to write <paramref name="geom"/> to.</param>
+        /// <exception cref="ArgumentNullException">Thrown when either argument is <see langword="null"/>.</exception>
+        public void Write(Geometry geom, Stream stream)
         {
             if (geom == null)
             {
@@ -32,7 +67,7 @@ namespace NetTopologySuite.IO
 
             using (var writer = new BinaryWriter(stream))
             {
-                int byteOrder = (int)ByteOrder;
+                int byteOrder = (int)ByteOrder.LittleEndian;
                 int ordinates = 0;
                 switch (HandleOrdinates)
                 {
@@ -58,7 +93,7 @@ namespace NetTopologySuite.IO
                 {
                     Extent = geom.EnvelopeInternal,
                     Flags = flags,
-                    SrsId = HandleSRID ? geom.SRID : -1
+                    SrsId = geom.SRID,
                 };
                 GeoPackageBinaryHeader.Write(writer, header);
 
@@ -71,24 +106,30 @@ namespace NetTopologySuite.IO
                     // value is set to an IEEE-754 quiet NaN value.
                     double qnan = BitConverter.Int64BitsToDouble(0x7FF8000000000000);
                     int dimension = 2 + (emitZ ? 1 : 0) + (emitM ? 1 : 0);
+                    int measures = emitM ? 1 : 0;
                     double[] ords = new double[dimension];
                     for (int i = 0; i < ords.Length; i++)
                     {
                         ords[i] = qnan;
                     }
 
-                    geom = geom.Factory.CreatePoint(new PackedDoubleCoordinateSequence(ords, dimension));
+                    geom = geom.Factory.CreatePoint(new PackedDoubleCoordinateSequence(ords, dimension, measures));
                 }
 
                 // NOTE: GeoPackage handles SRID in its own header.  It would be invalid here.
                 const bool dontHandleSRID = false;
-                var wkbWriter = new WKBWriter(ByteOrder, dontHandleSRID, emitZ, emitM);
+                var wkbWriter = new WKBWriter(ByteOrder.LittleEndian, dontHandleSRID, emitZ, emitM);
                 wkbWriter.Write(geom, stream);
             }
         }
 
-        /// <inheritdoc cref="IGeometryWriter{TSink}.Write(IGeometry)"/>>
-        public byte[] Write(IGeometry geom)
+        /// <summary>
+        /// Serializes a given <see cref="Geometry"/> to a new byte array.
+        /// </summary>
+        /// <param name="geom">The <see cref="Geometry"/> to serialize.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="geom"/> is <see langword="null"/>.</exception>
+        public byte[] Write(Geometry geom)
         {
             if (geom == null)
             {
@@ -99,42 +140,6 @@ namespace NetTopologySuite.IO
             var stream = new MemoryStream();
             Write(geom, stream);
             return stream.ToArray();
-        }
-
-        /// <inheritdoc cref="IGeometryIOSettings.HandleSRID"/>
-        public bool HandleSRID
-        {
-            get => true;
-            set
-            {
-                if (!value)
-                    throw new InvalidOperationException("Always write SRID value!");
-            }
-        }
-
-        /// <inheritdoc cref="IGeometryIOSettings.AllowedOrdinates"/>
-        public Ordinates AllowedOrdinates => Ordinates.XYZM;
-
-        /// <inheritdoc cref="IGeometryIOSettings.HandleOrdinates"/>
-        public Ordinates HandleOrdinates
-        {
-            get => _handleOrdinates;
-            set
-            {
-                value = Ordinates.XY | (AllowedOrdinates & value);
-                _handleOrdinates = value;
-            }
-        }
-
-        /// <inheritdoc cref="IBinaryGeometryWriter.ByteOrder"/>
-        public ByteOrder ByteOrder
-        {
-            get => ByteOrder.LittleEndian;
-            set
-            {
-                if (value != ByteOrder.LittleEndian)
-                    throw new InvalidOperationException("Always use LittleEndian!");
-            }
         }
     }
 }

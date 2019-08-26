@@ -1,0 +1,38 @@
+language: csharp
+mono: none
+dotnet: 2.2
+dist: xenial
+
+
+before_install:
+  - sudo apt-get install -y libsqlite3-mod-spatialite
+
+
+script:
+  - dotnet build -c Release
+  - dotnet test  -c Release --no-build
+  - dotnet pack  -c Release --no-build -p:NoWarn=NU5105
+
+
+deploy:
+
+
+  - on:
+      branch: master
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_API_KEY
+    skip_cleanup: true
+
+
+  - on:
+      branch: develop
+    provider: script
+    script:
+      - dotnet nuget push **/*.nupkg -s https://www.myget.org/F/nettopologysuite/api/v2/package -k $MYGET_API_KEY
+    skip_cleanup: true
+
+env:
+  global:
+  - secure: b3Z4ExmvAj93JJWLNmfzbxIOIthAgYzy5JEtz06S0nNxHMphuFlZrv3F9L1dwQ7/7HgO/2ibqAXv1paWElcEfYAJjlJkbA5NVBeGajOIGV22gHqmgMPF+WgDIOP34g2GPLmk8pD+RbVTCuOhfl+9SsyNEP0XRMERIM8FJm9chhlT/IRTfEq5+Xq/Xi3laDebMSNaYDwvdzBi3LLajWV+LzumKTyS2mx6JFJPAh7mOFjsKWda43O1sJyjaiqoWfLq+G+9Usfw+8IDQXz37dpuWiVPtZ1SdYNlUsNHBVM2LTQWPKQlzwUnCTw1JmKU5JotDM8g4P1NKsCyZV8EOF7bbqXGEtzycm1UtaIj3PfKlVPEZyp/5twH4f4h4SmSq4iwVJYuKXg45oepmQUMFkPfzb1V0QC9+oJL2iD+157NhLWyXPu5/VJMH3oj7xvPDhhy4fWkACmqmU5KVWHlHH8JDDuB/wQqnm5FRtX3WwVW/Bql+pHbDcUIm5ruO3Ev2LQ/GczomKsRADpKV4ZlMYxXNAWX+rpvS9aCswiXLO/mGnqgL71z+ybzJwwM/svG3HiA6FGfeeVBHSie5RMrxqf+jV6tgobmroI5lhytp50o7n4HToVzNB8Z3QIAGs8M5Z7N2ca1msnk9Dy+9RnThA6qPqoQipQy8dd3O2Eu+uNFxxE=
+  - secure: J4RkLqnhs0GmdHP0z1UPcDrW2LGJy3r00bWcdw3wcIXtdKUNRvJSr3AVh8XxXJav9Q659uUnrhYVCd8PSlRRWBaZAvizj3eUQNtqL9YnHhM/TaadRx8wCL/MF/P5ktGBSeCS4Ys0QoqaqQDarJhbOEnHXWK3LCbDbZGNHTfJmF1BL0MxhCP6PaCsP9uuBphxRRhjcPe9cRkZ7TQY0v6AH/BQr0PMmccofesJfewvPvwBYqeaiyucNgc+30v+pwzfxaDjoYDhjdEN1zlfQYYQgyURfnn4a9GjMZWbwDq18OUp61VIl6xFeqSR40mdJvK6aA+0PIOnJaxf43ZqnMhjeGV4ggI8kLHY4NkBJnDVhuI4Dz2B0WchyjVAfvQXV2F9EQF/Ro+cQ/rXXQtkLwa6nUJxdYDa1PgbFLTSIJQGiv9iCm+GpbCxjPf2evCM0M3K2naM6iTyNoD0xNFkcec3RimFIZbeHLTybNL+I52Wb5LHWobO9NCuHQWMeuhRiOMpSkCAaCxEyzXymc/ZGC54Jfxu1p9T8KZvd8unj9tHXvizuaAGOxfpd+HGpdteg4Kmia5YgwjqQj3memDcsSc1Rvz7tEl2CUn0VW59TWbEjAHsj0yX2P+L5XkjfvFA7nL99Dm8HYO7KBzOAc95LDjrGyraXyUY5mVrDIkLCbGR/FE=

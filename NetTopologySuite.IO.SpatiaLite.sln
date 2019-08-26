@@ -9,18 +9,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		ACKNOWLEDGEMENTS.md = ACKNOWLEDGEMENTS.md
 		LICENSE.md = LICENSE.md
-		NetTopologySuite.Common.props = NetTopologySuite.Common.props
-		NetTopologySuite.IO.GeoPackage.nuspec = NetTopologySuite.IO.GeoPackage.nuspec
-		NetTopologySuite.IO.SpatiaLite.nuspec = NetTopologySuite.IO.SpatiaLite.nuspec
 		README.md = README.md
-		SharedAssemblyVersion.cs = SharedAssemblyVersion.cs
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite", "NetTopologySuite.IO.SpatiaLite\NetTopologySuite.IO.SpatiaLite.csproj", "{7B1D5E9B-C287-4984-BDF4-3A0944BF85E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite", "src\NetTopologySuite.IO.SpatiaLite\NetTopologySuite.IO.SpatiaLite.csproj", "{7B1D5E9B-C287-4984-BDF4-3A0944BF85E0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite.Test", "NetTopologySuite.IO.SpatiaLite.Test\NetTopologySuite.IO.SpatiaLite.Test.csproj", "{0347C9B8-684D-4792-B609-4A999AFC4273}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.SpatiaLite.Test", "test\NetTopologySuite.IO.SpatiaLite.Test\NetTopologySuite.IO.SpatiaLite.Test.csproj", "{0347C9B8-684D-4792-B609-4A999AFC4273}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoPackage", "NetTopologySuite.IO.GeoPackage\NetTopologySuite.IO.GeoPackage.csproj", "{C2B0C2E7-AD9C-40D5-9A44-F30C370B92CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetTopologySuite.IO.GeoPackage", "src\NetTopologySuite.IO.GeoPackage\NetTopologySuite.IO.GeoPackage.csproj", "{C2B0C2E7-AD9C-40D5-9A44-F30C370B92CB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

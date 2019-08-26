@@ -1,5 +1,4 @@
 using System;
-using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
 
@@ -9,11 +8,11 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
     {
         public static readonly Random RND = new Random(9987462);
 
-        public RandomGeometryHelper(IGeometryFactory factory)
+        public RandomGeometryHelper(GeometryFactory factory)
         {
             Factory = factory;
             //_geometricShapeFactory = new SineStarFactory(factory);
-            CreateCoordinate = () => new Coordinate();
+            CreateCoordinate = () => new CoordinateZM();
             Ordinates = Ordinates.XY;
             MinX = -180;
             MaxX = 180;
@@ -45,8 +44,8 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
                 c.Y = RandomOrdinate(Ordinate.Y);
                 if ((Ordinates & Ordinates.Z) == Ordinates.Z)
                     c.Z = RandomOrdinate(Ordinate.Z);
-                //if ((Ordinates & Ordinates.M) == Ordinates.M)
-                //    c.M = RandomOrdinate(Ordinate.M);
+                if ((Ordinates & Ordinates.M) == Ordinates.M)
+                    c.M = RandomOrdinate(Ordinate.M);
 
                 return c;
             }
@@ -67,7 +66,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             }
         }
 
-        private IGeometryFactory _factory;
+        private GeometryFactory _factory;
 
         public int SRID
         {
@@ -82,7 +81,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         /// <summary>
         /// Gets the factory to create the random geometries
         /// </summary>
-        public IGeometryFactory Factory
+        public GeometryFactory Factory
         {
             get { return _factory; }
             set
@@ -98,12 +97,12 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         /// <summary>
         /// Gets a point with random ordinates
         /// </summary>
-        public IPoint Point { get { return Factory.CreatePoint(RandomCoordinate); } }
+        public Point Point { get { return Factory.CreatePoint(RandomCoordinate); } }
 
         /// <summary>
         /// Gets a multipoint of a random number of points with random ordinates
         /// </summary>
-        public IMultiPoint MultiPoint
+        public MultiPoint MultiPoint
         {
             get
             {
@@ -111,16 +110,16 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             }
         }
 
-        public ILineString LineString
+        public LineString LineString
         {
             get { return Factory.CreateLineString(RandomCoordinates); }
         }
 
-        public IMultiLineString MultiLineString
+        public MultiLineString MultiLineString
         {
             get
             {
-                var lineStrings = new ILineString[RND.Next(5, 9)];
+                var lineStrings = new LineString[RND.Next(5, 9)];
                 for (var i = 0; i < lineStrings.Length; i++)
                     lineStrings[i] = LineString;
                 return Factory.CreateMultiLineString(lineStrings);
@@ -129,7 +128,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         private SineStarFactory _geometricShapeFactory;
 
-        public IPolygon Polygon
+        public Polygon Polygon
         {
             get
             {
@@ -146,7 +145,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
                         default:
                             var poly = _geometricShapeFactory.CreateCircle();
                             var distance = -0.25 * Math.Min(_geometricShapeFactory.Height, _geometricShapeFactory.Width);
-                            var buffer = (IPolygon)poly.Buffer(distance);
+                            var buffer = (Polygon)poly.Buffer(distance);
                             return _factory.CreatePolygon(poly.Shell, new[] { buffer.Shell });
 
                         case 2:
@@ -161,32 +160,32 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             }
         }
 
-        public IMultiPolygon MultiPolygon
+        public MultiPolygon MultiPolygon
         {
             get
             {
-                var polys = new IPolygon[RND.Next(3, 8)];
+                var polys = new Polygon[RND.Next(3, 8)];
                 for (var i = 0; i < polys.Length; i++)
                     polys[i] = Polygon;
                 var mp = Factory.CreateMultiPolygon(polys);
                 var mpUnion = mp.Union();
-                var multiPolygon = mpUnion as IMultiPolygon;
-                return multiPolygon ?? Factory.CreateMultiPolygon(new[] { (IPolygon)mpUnion });
+                var multiPolygon = mpUnion as MultiPolygon;
+                return multiPolygon ?? Factory.CreateMultiPolygon(new[] { (Polygon)mpUnion });
             }
         }
 
-        public IGeometryCollection GeometryCollection
+        public GeometryCollection GeometryCollection
         {
             get
             {
-                var polys = new IGeometry[RND.Next(3, 8)];
+                var polys = new Geometry[RND.Next(3, 8)];
                 for (var i = 0; i < polys.Length; i++)
                     polys[i] = Geometry;
                 return Factory.CreateGeometryCollection(polys);
             }
         }
 
-        public IGeometry Geometry
+        public Geometry Geometry
         {
             get
             {
