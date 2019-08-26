@@ -190,7 +190,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
 
         public void PerformTest(Geometry gIn)
         {
-            WKTWriter writer = new WKTWriter(4) { EmitSRID = true, MaxCoordinatesPerLine = 3, };
+            WKTWriter writer = new WKTWriter(4) { MaxCoordinatesPerLine = 3, };
             byte[] b = null;
             Assert.DoesNotThrow(() => b = Write(gIn), "Threw exception during write:\n{0}", writer.WriteFormatted(gIn));
 
