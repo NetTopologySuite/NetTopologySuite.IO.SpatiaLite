@@ -30,7 +30,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
                 conn.Open();
 
                 conn.EnableExtensions(true);
-                conn.LoadExtension(SpatialiteLoader.FindExtension());
+                SpatialiteLoader.Load(conn);
                 Debug.WriteLine("'mod_spatialite' extension loaded");
 
                 action(conn);

@@ -45,7 +45,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             {
                 conn.Open();
                 conn.EnableExtensions(true);
-                conn.LoadExtension(SpatialiteLoader.FindExtension());
+                SpatialiteLoader.Load(conn);
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText =
