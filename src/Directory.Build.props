@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <!-- GitHub Actions -->
-  <PropertyGroup Condition=" '$(GITHUB_ACTION)' == '' ">
+  <PropertyGroup Condition=" '$(GITHUB_ACTION)' != '' ">
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <NtsBuildMetadata Condition=" '$(NtsBuildMetadata)' == '' ">ci.github.$(GITHUB_RUN_NUMBER)</NtsBuildMetadata>
