@@ -16,6 +16,13 @@
     <NtsOfficialRelease Condition=" '$(TRAVIS_BRANCH)' == 'master' And '$(TRAVIS_PULL_REQUEST)' == 'false' ">true</NtsOfficialRelease>
   </PropertyGroup>
 
+  <!-- GitHub Actions -->
+  <PropertyGroup Condition=" '$(GITHUB_ACTION)' == '' ">
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <NtsBuildMetadata Condition=" '$(NtsBuildMetadata)' == '' ">ci.github.$(GITHUB_RUN_NUMBER)</NtsBuildMetadata>
+  </PropertyGroup>
+
   <!-- TeamCity -->
   <PropertyGroup Condition=" '$(TEAMCITY_VERSION)' != '' ">
     <Deterministic>true</Deterministic>
