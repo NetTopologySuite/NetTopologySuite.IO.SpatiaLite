@@ -12,21 +12,13 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
     [NUnit.Framework.Category("Database.IO")]
     public class SpatiaLiteFixture : AbstractIOFixture
     {
+        private int _counter;
+
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XY;
+            InputOrdinates = Ordinates.XY;
             Compressed = false;
-        }
-
-        public bool HasZ
-        {
-            get { return (this.Ordinates & Ordinates.Z) == Ordinates.Z; }
-        }
-
-        public bool HasM
-        {
-            get { return (this.Ordinates & Ordinates.M) == Ordinates.M; }
         }
 
         public bool Compressed { get; set; }
@@ -48,16 +40,15 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             if (File.Exists(Name))
                 File.Delete(Name);
 
-            using (SQLiteConnection conn = new SQLiteConnection("Data Source=\"" + Name + "\""))
-            {
-                conn.Open();
-                using (SQLiteCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText =
-                        "CREATE TABLE \"nts_io_spatialite\" (id int primary key, wkt text, the_geom blob);";
-                    cmd.ExecuteNonQuery();
-                }
-            }
+            using var conn = new SQLiteConnection("Data Source=\"" + Name + "\"");
+            conn.Open();
+            conn.EnableExtensions(true);
+            SpatialiteLoader.Load(conn);
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText =
+                "CREATE TABLE \"nts_io_spatialite\" (id int primary key, the_geom geometry);";
+            cmd.ExecuteNonQuery();
         }
 
         protected override void CheckEquality(Geometry gIn, Geometry gParsed, WKTWriter writer)
@@ -90,23 +81,32 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         protected override byte[] Write(Geometry gIn)
         {
             var writer = new GaiaGeoWriter();
-            writer.HandleOrdinates = Ordinates;
+            writer.HandleOrdinates = ClipOrdinates;
             writer.UseCompressed = Compressed;
 
-            var b = writer.Write(gIn);
-            using (SQLiteConnection conn = new SQLiteConnection("Data Source=\"" + Name + "\""))
-            {
-                conn.Open();
-                using (SQLiteCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "INSERT INTO \"nts_io_spatialite\" VALUES(@P1, @P3, @P2);";
-                    SQLiteParameter p1 = new SQLiteParameter("P1", DbType.Int32) { Value = this.Counter };
-                    SQLiteParameter p2 = new SQLiteParameter("P2", DbType.String) { Value = gIn.AsText() };
-                    SQLiteParameter p3 = new SQLiteParameter("P3", DbType.Binary) { Value = b };
-                    cmd.Parameters.AddRange(new[] { p1, p2, p3 });
-                    cmd.ExecuteNonQuery();
-                }
-            }
+            byte[] b = writer.Write(gIn);
+
+            using var conn = new SQLiteConnection("Data Source=\"" + Name + "\"");
+            conn.Open();
+            conn.EnableExtensions(true);
+            SpatialiteLoader.Load(conn);
+
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "INSERT INTO \"nts_io_spatialite\" VALUES(@id, @g);";
+            var idParameter = cmd.Parameters.Add("id", DbType.Int32);
+            idParameter.Value = ++_counter;
+
+            var geometryParameter = cmd.Parameters.Add("g", DbType.Object);
+            geometryParameter.Value = b;
+
+            cmd.ExecuteNonQuery();
+
+            cmd.Parameters.Clear();
+            cmd.CommandText = "SELECT 'XY' || CASE WHEN ST_Is3D(the_geom) = 1 THEN 'Z' ELSE '' END || CASE WHEN ST_IsMeasured(the_geom) = 1 THEN 'M' ELSE '' END FROM \"nts_io_spatialite\" WHERE id = @id";
+            cmd.Parameters.Add(idParameter);
+
+            string ordinates = $"{cmd.ExecuteScalar()}";
+            Assert.That(Enum.Parse<Ordinates>(ordinates), Is.EqualTo(InputOrdinates & ClipOrdinates));
             return b;
         }
     }
@@ -133,7 +133,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XYZ;
+            InputOrdinates = Ordinates.XYZ;
         }
     }
 
@@ -147,6 +147,20 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         {
             base.OnFixtureSetUp();
             Compressed = true;
+        }
+    }
+
+    [NUnit.Framework.TestFixture]
+    [NUnit.Framework.Category("Database.IO")]
+    public class SpatiaLiteFixture3DMClippedTo2D : SpatiaLiteFixture
+    {
+        protected override string Name { get { return "SpatiaLiteFixture3DMClippedTo2D.sqlite"; } }
+
+        public override void OnFixtureSetUp()
+        {
+            base.OnFixtureSetUp();
+            InputOrdinates = Ordinates.XYZM;
+            ClipOrdinates = Ordinates.XY;
         }
     }
 }

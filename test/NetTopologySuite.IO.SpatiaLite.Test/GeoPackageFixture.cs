@@ -14,13 +14,13 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XY;
+            InputOrdinates = Ordinates.XY;
             Compressed = false;
         }
 
-        public bool HasZ => (Ordinates & Ordinates.Z) == Ordinates.Z;
+        public bool InputHasZ => (InputOrdinates & Ordinates.Z) == Ordinates.Z;
 
-        public bool HasM => (Ordinates & Ordinates.M) == Ordinates.M;
+        public bool InputHasM => (InputOrdinates & Ordinates.M) == Ordinates.M;
 
         public bool Compressed { get; set; }
 
@@ -86,7 +86,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         {
             var writer = new GeoPackageGeoWriter
             {
-                HandleOrdinates = Ordinates
+                HandleOrdinates = ClipOrdinates
             };
             return writer.Write(geom);
         }
@@ -101,7 +101,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XYZ;
+            InputOrdinates = Ordinates.XYZ;
         }
     }
 
@@ -114,7 +114,7 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XYM;
+            InputOrdinates = Ordinates.XYM;
         }
     }
 
@@ -127,7 +127,21 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         public override void OnFixtureSetUp()
         {
             base.OnFixtureSetUp();
-            Ordinates = Ordinates.XYZM;
+            InputOrdinates = Ordinates.XYZM;
+        }
+    }
+
+    [TestFixture]
+    [Category("Database.IO")]
+    public class GeoPackageFixture3DMClippedTo2D : GeoPackageFixture
+    {
+        protected override string Name => "GeoPackageFixture3DMClippedTo2D.sqlite";
+
+        public override void OnFixtureSetUp()
+        {
+            base.OnFixtureSetUp();
+            InputOrdinates = Ordinates.XYZM;
+            ClipOrdinates = Ordinates.XY;
         }
     }
 }

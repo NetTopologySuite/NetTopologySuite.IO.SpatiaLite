@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Utilities;
 
 namespace NetTopologySuite.IO
 {
@@ -62,8 +63,9 @@ namespace NetTopologySuite.IO
             //if (geom.IsEmpty)
             //    return GaiaGeoEmptyHelper.EmptyGeometryCollectionWithSrid(geom.SRID);
 
-            var hasZ = (HandleOrdinates & Ordinates.Z) == Ordinates.Z;
-            var hasM = (HandleOrdinates & Ordinates.M) == Ordinates.M;
+            var ordinates = CheckOrdinates(geom);
+            var hasZ = (ordinates & Ordinates.Z) == Ordinates.Z;
+            var hasM = (ordinates & Ordinates.M) == Ordinates.M;
 
             var gaiaExport = SetGaiaGeoExportFunctions(GaiaGeoEndianMarker.GAIA_LITTLE_ENDIAN, hasZ, hasM, UseCompressed);
 
@@ -128,6 +130,8 @@ namespace NetTopologySuite.IO
 
             //Geometry type
             int coordinateFlag = gaiaExport.CoordinateFlag;
+
+            // N.B.: only LINESTRING and POLYGON (and their Z / M / ZM variants) support compression
             int coordinateFlagNotValidForCompression = coordinateFlag > 1000000
                                                            ? coordinateFlag - 1000000
                                                            : coordinateFlag;
@@ -150,11 +154,11 @@ namespace NetTopologySuite.IO
                     WriteMultiPoint((MultiPoint)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.MultiLineString:
-                    gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTILINESTRING | coordinateFlag);
+                    gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTILINESTRING | coordinateFlagNotValidForCompression);
                     WriteMultiLineString((MultiLineString)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.MultiPolygon:
-                    gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOLYGON | coordinateFlag);
+                    gaiaExport.WriteInt32(bw, (int)GaiaGeoGeometry.GAIA_MULTIPOLYGON | coordinateFlagNotValidForCompression);
                     WriteMultiPolygon((MultiPolygon)geom, writeCoordinates, gaiaExport, bw);
                     break;
                 case OgcGeometryType.GeometryCollection:
@@ -411,6 +415,90 @@ namespace NetTopologySuite.IO
             cprev = coordinateSequence.GetCoordinate(maxIndex);
             mprev = coordinateSequence.GetOrdinate(maxIndex, Ordinate.M);
             wd(bw, cprev.X, cprev.Y, cprev.Z, mprev);
+        }
+
+        private Ordinates CheckOrdinates(Geometry geometry)
+        {
+            if (HandleOrdinates == Ordinates.XY)
+            {
+                return Ordinates.XY;
+            }
+
+            var filter = new CheckOrdinatesFilter(HandleOrdinates);
+            geometry.Apply(filter);
+
+            var result = Ordinates.XY;
+            if (filter.FoundZ)
+            {
+                result |= Ordinates.Z;
+            }
+
+            if (filter.FoundM)
+            {
+                result |= Ordinates.M;
+            }
+
+            return result;
+        }
+
+        private sealed class CheckOrdinatesFilter : IEntireCoordinateSequenceFilter
+        {
+            private readonly bool _checkZ;
+
+            private readonly bool _checkM;
+
+            public CheckOrdinatesFilter(Ordinates ordinatesToCheck)
+            {
+                _checkZ = (ordinatesToCheck & Ordinates.Z) == Ordinates.Z;
+                _checkM = (ordinatesToCheck & Ordinates.M) == Ordinates.M;
+            }
+
+            public bool FoundZ { get; private set; }
+
+            public bool FoundM { get; private set; }
+
+            public bool Done
+            {
+                get
+                {
+                    if (_checkZ && !FoundZ)
+                    {
+                        return false;
+                    }
+
+                    if (_checkM && !FoundM)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+
+            bool IEntireCoordinateSequenceFilter.GeometryChanged => false;
+
+            public void Filter(CoordinateSequence seq)
+            {
+                bool checkZ = _checkZ && !FoundZ && seq.HasZ;
+                bool checkM = _checkM && !FoundM && seq.HasM;
+
+                int zIndex = seq.ZOrdinateIndex;
+                int mIndex = seq.MOrdinateIndex;
+                for (int i = 0; (checkZ || checkM) && i < seq.Count; i++)
+                {
+                    if (checkZ && zIndex >= 0 && !double.IsNaN(seq.GetOrdinate(i, zIndex)))
+                    {
+                        FoundZ = true;
+                        checkZ = false;
+                    }
+
+                    if (checkM && mIndex >= 0 && !double.IsNaN(seq.GetOrdinate(i, mIndex)))
+                    {
+                        FoundM = true;
+                        checkM = false;
+                    }
+                }
+            }
         }
     }
 }
