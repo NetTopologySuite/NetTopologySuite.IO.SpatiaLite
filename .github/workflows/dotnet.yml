@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ fix-gh7 ]
   pull_request:
-    branches: [ develop ]
+    branches: [ fix-gh7 ]
 
 jobs:
   build:

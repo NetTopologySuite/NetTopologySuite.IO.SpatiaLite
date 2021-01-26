@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Implementation;
 using NUnit.Framework;
@@ -22,10 +23,6 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
         {
             RandomGeometryHelper = new RandomGeometryHelper(factory);
         }
-
-        private int _counter;
-
-        public int Counter { get { return ++_counter; } }
 
         [SetUp]
         public virtual void OnFixtureSetUp()
@@ -173,13 +170,24 @@ namespace NetTopologySuite.IO.SpatiaLite.Test
             protected set { RandomGeometryHelper.MaxY = value; }
         }
 
-        public Ordinates Ordinates
+        public Ordinates InputOrdinates
         {
             get { return RandomGeometryHelper.Ordinates; }
             set
             {
                 Debug.Assert((value & Ordinates.XY) == Ordinates.XY);
                 RandomGeometryHelper.Ordinates = value;
+            }
+        }
+
+        private Ordinates _clipOrdinates = Ordinates.AllOrdinates;
+        public Ordinates ClipOrdinates
+        {
+            get => _clipOrdinates;
+            set
+            {
+                Debug.Assert((value & Ordinates.XY) == Ordinates.XY);
+                _clipOrdinates = value;
             }
         }
 
