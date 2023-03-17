@@ -145,10 +145,15 @@ namespace NetTopologySuite.IO
             //        break;
             //};
             offset = 6;
-            var env = new Envelope(gaiaImport.GetDouble(blob, ref offset),
-                                   gaiaImport.GetDouble(blob, ref offset),
-                                   gaiaImport.GetDouble(blob, ref offset),
-                                   gaiaImport.GetDouble(blob, ref offset));
+
+            //the next four values are the envelope, but it is not required here
+            //consider that if the values contain double.NaN
+            //the NetTopologySuite.Geometries.Envelope constructor might fail
+
+            for (int i = 0; i != 4; ++i)
+            {
+                gaiaImport.GetDouble(blob, ref offset);
+            }
 
             offset = 39;
             var type = (GaiaGeoGeometry)gaiaImport.GetInt32(blob, ref offset);
